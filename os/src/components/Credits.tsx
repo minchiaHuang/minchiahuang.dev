@@ -41,6 +41,26 @@ const PAGES: Section[][] = [
       note: 'Both fonts are licensed under the SIL Open Font License 1.1.',
     },
   ],
+  [
+    {
+      title: 'Sound & Assets',
+      rows: [
+        ['Kenney', 'Furniture model and UI sounds (CC0)'],
+        ['Monitor glass & noise', 'Generated in code'],
+      ],
+    },
+  ],
+  [
+    {
+      title: 'Games',
+      rows: [
+        ['Doom (shareware)', 'id Software, via js-dos archive'],
+        ['The Oregon Trail Deluxe', 'MECC, via js-dos archive'],
+        ['Scrabble', 'U.S. Gold, via archive.org'],
+        ['js-dos & DOSBox', 'Emulator'],
+      ],
+    },
+  ],
 ];
 
 export default function Credits() {

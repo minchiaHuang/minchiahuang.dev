@@ -8,9 +8,12 @@ import FiveLetters from './components/FiveLetters';
 import Credits from './components/Credits';
 import DosGame from './components/DosGame';
 import Showcase from './components/Showcase';
+import AboutSite from './components/AboutSite';
 import Shutdown from './components/Shutdown';
 import { activeId, initialSystem, pressedId, reduce } from './windows';
 import type { Action } from './windows';
+import { parseOpenMessage, parseOpenQuery } from './remote';
+import type { OpenTarget, ShowcasePage } from './remote';
 
 // Screenshot states for review: ?shot=startmenu | selected | windows | maximized | minimized | shutdown
 // | fiveletters | fiveletters-win | fiveletters-lose | credits | dos-oregon | dos-doom | dos-scrabble.
@@ -25,10 +28,20 @@ const initialOpen = (): AppId[] => {
 };
 const shotGuesses = shot === 'fiveletters-win' ? ['TODAY', 'TOMMY'] : shot === 'fiveletters-lose' ? Array(6).fill('CRANE') : shot === 'fiveletters' ? ['CRANE', 'MONEY'] : [];
 
-function Content({ id, active, minimized }: { id: AppId; active: boolean; minimized: boolean }) {
+interface ContentProps {
+  id: AppId;
+  active: boolean;
+  minimized: boolean;
+  showcasePage: { page: ShowcasePage; n: number } | null;
+  onOpenAboutSite: () => void;
+}
+
+function Content({ id, active, minimized, showcasePage, onOpenAboutSite }: ContentProps) {
   switch (id) {
     case 'showcase':
-      return <Showcase />;
+      return <Showcase request={showcasePage ?? undefined} onOpenAboutSite={onOpenAboutSite} />;
+    case 'about-site':
+      return <AboutSite />;
     case 'fiveletters':
       return <FiveLetters active={active} initial={shotGuesses} />;
     case 'credits':
@@ -50,6 +63,8 @@ export default function App() {
     let s = initialSystem({ w: window.innerWidth, h: window.innerHeight }, initialOpen());
     if (shot === 'windows' || shot === 'credits') s = reduce(s, { type: 'focus', id: 'credits' });
     if (shot === 'maximized') s = reduce(s, { type: 'toggleMax', id: 'showcase' });
+    // A phone-width standalone page has no room for a floating window: Showcase starts maximised.
+    if (shot !== 'maximized' && window.parent === window && window.innerWidth <= 768) s = reduce(s, { type: 'toggleMax', id: 'showcase' });
     if (shot === 'minimized') s = reduce(s, { type: 'minimize', id: 'showcase' });
     return s;
   });
@@ -65,6 +80,34 @@ export default function App() {
     if (a.type === 'close') setOpened((o) => (o === a.id ? null : o));
     dispatch(a);
   }, []);
+
+  const [showcasePage, setShowcasePage] = useState<{ page: ShowcasePage; n: number } | null>(null);
+  const openTarget = useCallback(
+    (t: OpenTarget) => {
+      if (t.app === 'about-site') {
+        send({ type: 'open', id: 'about-site' });
+        return;
+      }
+      send({ type: 'open', id: 'showcase' });
+      setShowcasePage((prev) => ({ page: t.page, n: (prev?.n ?? 0) + 1 })); // n re-triggers the same page
+    },
+    [send],
+  );
+  const openAboutSite = useCallback(() => send({ type: 'open', id: 'about-site' }), [send]);
+
+  // The outer page (postMessage) or the URL can ask for a window; see remote.ts.
+  useEffect(() => {
+    const fromUrl = parseOpenQuery(location.search);
+    if (fromUrl) openTarget(fromUrl);
+    const onMessage = (e: MessageEvent) => {
+      // Only the embedding page, from our own origin, may open windows.
+      if (e.source !== window.parent || e.origin !== location.origin) return;
+      const t = parseOpenMessage(e.data);
+      if (t) openTarget(t);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [openTarget]);
 
   // The OS fills the iframe: follow the size of the root element (100vw x 100vh).
   useEffect(() => {
@@ -108,7 +151,7 @@ export default function App() {
       <div className="win-layer">
         {sys.wins.map((w) => (
           <Window key={w.id} win={w} active={active === w.id} dispatch={send}>
-            <Content id={w.id} active={active === w.id} minimized={w.minimized} />
+            <Content id={w.id} active={active === w.id} minimized={w.minimized} showcasePage={showcasePage} onOpenAboutSite={openAboutSite} />
           </Window>
         ))}
       </div>

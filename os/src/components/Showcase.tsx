@@ -1,8 +1,10 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { icons } from '../icons';
+import { parseOpenQuery, SHOWCASE_PAGES } from '../remote';
+import type { ShowcasePage as Page } from '../remote';
 
-type Page = 'home' | 'about' | 'experience' | 'projects' | 'software' | 'music' | 'art' | 'contact';
+const RESUME_FILE = 'MinChia-Tommy-Huang-Resume.pdf';
 
 const asset = (name: string) => `${import.meta.env.BASE_URL}showcase/${name}`;
 const SITE = 'https://minchiahuang.dev';
@@ -10,7 +12,6 @@ const EMAIL = 'minchia.huang.dev@gmail.com';
 const LINKS = [
   { label: 'GitHub', href: 'https://github.com/minchiaHuang' },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/minchiahuang/' },
-  { label: 'Personal site', href: SITE },
 ];
 
 const Ext = ({ href, children }: { href: string; children: ReactNode }) => (
@@ -84,30 +85,21 @@ const PROJECTS: Project[] = [
   },
 ];
 
-const NAV: { page: Page; label: string; children?: { page: Page; label: string }[] }[] = [
+const NAV: { page: Page; label: string }[] = [
   { page: 'home', label: 'HOME' },
   { page: 'about', label: 'ABOUT' },
   { page: 'experience', label: 'EXPERIENCE' },
-  {
-    page: 'projects',
-    label: 'PROJECTS',
-    children: [
-      { page: 'software', label: 'SOFTWARE' },
-      { page: 'music', label: 'MUSIC' },
-      { page: 'art', label: 'ART' },
-    ],
-  },
+  { page: 'projects', label: 'PROJECTS' },
+  { page: 'resume', label: 'RESUME' },
   { page: 'contact', label: 'CONTACT' },
 ];
 
-const isUnder = (page: Page, parent: Page) =>
-  parent === 'projects' && (page === 'software' || page === 'music' || page === 'art');
-
-// Screenshot states: ?shot=sc-about, sc-projects, sc-software ... open My Showcase on that page.
-const PAGES: Page[] = ['home', 'about', 'experience', 'projects', 'software', 'music', 'art', 'contact'];
+// Opening page: ?page=<page> (see remote.ts), else the screenshot state ?shot=sc-<page>, else home.
 const startPage = (): Page => {
+  const fromUrl = parseOpenQuery(location.search);
+  if (fromUrl?.app === 'showcase') return fromUrl.page;
   const m = /^sc-(\w+)$/.exec(new URLSearchParams(location.search).get('shot') ?? '');
-  return (PAGES as string[]).includes(m?.[1] ?? '') ? (m![1] as Page) : 'home';
+  return (SHOWCASE_PAGES as readonly string[]).includes(m?.[1] ?? '') ? (m![1] as Page) : 'home';
 };
 
 const GoCtx = createContext<(p: Page) => void>(() => {});
@@ -131,29 +123,49 @@ function Link({ to, children, className }: { to: Page; children: ReactNode; clas
   );
 }
 
-export default function Showcase() {
+interface ShowcaseProps {
+  // A page the outer page or the URL asked for. `n` changes on every request so asking for the page
+  // that is already showing (after the visitor browsed away and back) still counts.
+  request?: { page: Page; n: number };
+  onOpenAboutSite: () => void;
+}
+
+export default function Showcase({ request, onOpenAboutSite }: ShowcaseProps) {
   const [page, setPage] = useState<Page>(startPage);
   const [visited, setVisited] = useState<Set<Page>>(() => new Set());
   const go = (p: Page) => {
     setVisited((v) => new Set(v).add(page));
     setPage(p);
   };
+  useEffect(() => {
+    if (request) go(request.page);
+    // `go` changes every render; the request counter is the real trigger.
+  }, [request?.n]);
   return (
     <GoCtx.Provider value={go}>
       <VisitedCtx.Provider value={visited}>
-        <Pages page={page} />
+        <Pages page={page} onOpenAboutSite={onOpenAboutSite} />
       </VisitedCtx.Provider>
     </GoCtx.Provider>
   );
 }
 
-function Pages({ page }: { page: Page }) {
-
+function Pages({ page, onOpenAboutSite }: { page: Page; onOpenAboutSite: () => void }) {
+  const go = useContext(GoCtx);
   if (page === 'home') {
     return (
       <div className="sc sc-home">
-        <h1 className="sc-name-big">Tommy Huang</h1>
+        <h1 className="sc-name-big">Min-Chia (Tommy) Huang</h1>
         <div className="sc-job">Software Engineer</div>
+        <div className="sc-tagline">full-stack, backend, AI &amp; automation</div>
+        <div className="sc-home-buttons">
+          <button type="button" className="sc-big-btn" onClick={() => go('resume')}>
+            Résumé
+          </button>
+          <button type="button" className="sc-big-btn" onClick={onOpenAboutSite}>
+            How this site was built
+          </button>
+        </div>
         <nav className="sc-home-links">
           <Link to="about">ABOUT</Link>
           <Link to="experience">EXPERIENCE</Link>
@@ -168,31 +180,19 @@ function Pages({ page }: { page: Page }) {
     <div className="sc sc-inner">
       <aside className="sc-side">
         <div className="sc-side-name">
-          Tommy
+          Min-Chia{' '}
+          <br />
+          (Tommy){' '}
           <br />
           Huang
         </div>
-        <div className="sc-side-sub">Showcase '26</div>
+        <div className="sc-side-sub">minchiahuang.dev</div>
         <nav className="sc-side-nav">
-          {NAV.map((n) => {
-            const open = page === n.page || (n.children && isUnder(page, n.page));
-            return (
-              <div key={n.page}>
-                <div className={`sc-nav-item${page === n.page ? ' is-current' : ''}${n.children && open ? ' has-children' : ''}`}>
-                  <Link to={n.page}>{n.label}</Link>
-                </div>
-                {n.children && open && (
-                  <div className="sc-nav-children">
-                    {n.children.map((c) => (
-                      <div key={c.page} className={`sc-nav-item sc-nav-child${page === c.page ? ' is-current' : ''}`}>
-                        <Link to={c.page}>{c.label}</Link>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {NAV.map((n) => (
+            <div key={n.page} className={`sc-nav-item${page === n.page ? ' is-current' : ''}`}>
+              <Link to={n.page}>{n.label}</Link>
+            </div>
+          ))}
         </nav>
       </aside>
       <main className="sc-main">{renderPage(page)}</main>
@@ -205,9 +205,9 @@ function Resume() {
     <div className="sc-resume">
       <img src={icons.resume} alt="" draggable={false} className="sc-resume-icon" />
       <div>
-        <strong>Looking for my resume?</strong>
+        <strong>Looking for my résumé?</strong>
         <br />
-        <Ext href={asset('TommyHuang_Resume.pdf')}>Click here to download it!</Ext>
+        <Ext href={asset(RESUME_FILE)}>Open résumé (PDF)</Ext>
       </div>
     </div>
   );
@@ -235,10 +235,27 @@ function renderPage(page: Page) {
             Recent work includes a first-place hackathon app, a visionOS museum shown at the UTS Tech Fest 2026 AI Showcase, and
             10+ client websites. Away from the keyboard I climb, swim and run, and last winter I cycled from Seoul to Busan.
           </p>
-          <p>
-            <strong>Skills.</strong> Swift, Python, C#, TypeScript, JavaScript, SQL; SwiftUI, React, Node.js, Express, Tailwind CSS;
-            OpenAI API, Model Context Protocol, PostgreSQL, SQLite; Git, Docker, Xcode.
-          </p>
+          <h3>What I can build</h3>
+          <ul>
+            <li>
+              <strong>iOS apps.</strong> Swift and SwiftUI, with on-device speech recognition.
+            </li>
+            <li>
+              <strong>Spatial.</strong> RealityKit and visionOS, generating USDZ scenes.
+            </li>
+            <li>
+              <strong>Backends.</strong> Python, FastAPI and SQLite, streaming progress to the client.
+            </li>
+            <li>
+              <strong>Wearables.</strong> Apps for Ray-Ban Meta glasses through the Meta Wearables DAT.
+            </li>
+            <li>
+              <strong>AI plumbing.</strong> OpenAI, MCP servers and tool-permission gating.
+            </li>
+            <li>
+              <strong>Shipping fast.</strong> Hackathons and tight deadlines, with other people in the room.
+            </li>
+          </ul>
         </>
       );
     case 'experience':
@@ -276,32 +293,8 @@ function renderPage(page: Page) {
       return (
         <>
           <h1>Projects</h1>
-          <h2>&amp; Hobbies</h2>
-          <p>Click on one of the areas below to see what I have been building, listening to and drawing.</p>
-          {(
-            [
-              ['software', 'Software', 'PROJECTS', icons.hubSoftware],
-              ['music', 'Music', 'VENTURES', icons.hubMusic],
-              ['art', 'Art', 'ENDEAVORS', icons.hubArt],
-            ] as const
-          ).map(([to, big, small, icon]) => (
-            <Link key={to} to={to} className="sc-card">
-              <img src={icon} alt="" draggable={false} className="sc-card-icon" />
-              <span className="sc-card-text">
-                <span className="sc-card-big">{big}</span>
-                <span className="sc-card-small">{small}</span>
-              </span>
-            </Link>
-          ))}
-        </>
-      );
-    case 'software':
-      return (
-        <>
-          <h1>Software</h1>
-          <h2>Projects</h2>
+          <h2>Software</h2>
           <p>Some of the software I have shipped, each under a deadline with other people in the room.</p>
-          <Resume />
           {PROJECTS.map((p) => (
             <section key={p.name} className="sc-proj">
               <h3>{p.name}</h3>
@@ -322,30 +315,19 @@ function renderPage(page: Page) {
           ))}
         </>
       );
-    case 'music':
+    case 'resume':
       return (
         <>
-          <h1>Music</h1>
-          <h2>Ventures</h2>
-          <p>Nothing here yet. I have not released any music, and I would rather leave this page honest than fill it with made-up tracks.</p>
-          <p>
-            Back to <Link to="projects">PROJECTS</Link>.
-          </p>
-        </>
-      );
-    case 'art':
-      return (
-        <>
-          <h1>Art</h1>
-          <h2>Endeavors</h2>
-          <p>
-            No standalone art portfolio yet. The closest thing is my film background and the visual side of the software
-            projects, such as the generated gallery rooms in Visual Eyes.
-          </p>
-          <img src={asset('ve-room-night.jpg')} alt="" draggable={false} className="sc-art" />
-          <p>
-            More on that project in <Link to="software">SOFTWARE</Link>.
-          </p>
+          <h1>Résumé</h1>
+          <h2>At a glance</h2>
+          <ul>
+            <li>Software engineer working across full-stack, backend, AI and automation.</li>
+            <li>Master of Information Technology, UTS (Enterprise Software Development), graduating July 2027.</li>
+            <li>1st place at the ICON x Lyra Hackathon with CookPilot; built the iOS app end to end.</li>
+            <li>10+ client websites and LINE and WhatsApp chatbots delivered as a freelancer.</li>
+            <li>Finalist, Accenture x SUBAA Datathon 2026 (top 4 of 40 teams).</li>
+          </ul>
+          <Resume />
         </>
       );
     case 'contact':
@@ -388,7 +370,13 @@ function renderPage(page: Page) {
             <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           </p>
           <p>
-            <Ext href={SITE}>Personal site</Ext> | <Ext href={asset('TommyHuang_Resume.pdf')}>Resume (PDF)</Ext>
+            {LINKS.map((l) => (
+              <span key={l.label}>
+                <Ext href={l.href}>{l.label}</Ext>
+                {' | '}
+              </span>
+            ))}
+            <Ext href={asset(RESUME_FILE)}>Résumé (PDF)</Ext>
           </p>
         </>
       );

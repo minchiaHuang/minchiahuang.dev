@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// os-spec §4.1: 12-hour "h:mm AM/PM", no leading zero on the hour, local time.
+// 12-hour "h:mm AM/PM", no leading zero on the hour, local time.
 export function formatClock(d: Date): string {
   const h = d.getHours() % 12 || 12;
   const m = String(d.getMinutes()).padStart(2, '0');

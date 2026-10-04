@@ -53,22 +53,12 @@ export const icons = {
       '<rect x="5" y="9" width="3" height="1" fill="#000"/><rect x="9" y="9" width="2" height="1" fill="#000"/>' +
       '<rect x="5" y="11" width="2" height="1" fill="#000"/><rect x="8" y="11" width="3" height="1" fill="#000"/>',
   ),
-  hubSoftware: svg(
-    '<rect x="1" y="2" width="14" height="12" fill="#000"/>' +
-      '<rect x="2" y="3" width="12" height="10" fill="#0b2a4a"/>' +
-      '<path d="M4 5h1v1h1v1H5v1H4V7h1V6H4zM7 9h4v1H7z" fill="#7cf0a0"/>',
-  ),
-  hubMusic: svg(
-    '<rect x="6" y="2" width="8" height="2" fill="#000"/>' +
-      '<rect x="12" y="2" width="2" height="9" fill="#000"/>' +
-      '<rect x="6" y="2" width="2" height="10" fill="#000"/>' +
-      '<rect x="2" y="10" width="5" height="4" fill="#000"/><rect x="9" y="9" width="5" height="4" fill="#000"/>' +
-      '<rect x="3" y="11" width="3" height="2" fill="#d83a8a"/><rect x="10" y="10" width="3" height="2" fill="#d83a8a"/>',
-  ),
-  hubArt: svg(
-    '<path d="M8 1c4 0 7 2 7 6 0 2-2 3-4 3-1 0-1 1-1 2 0 2-1 3-2 3-4 0-7-3-7-7s3-7 7-7z" fill="#000"/>' +
-      '<path d="M8 2c3 0 6 2 6 5 0 1-1 2-3 2-2 0-2 1-2 3 0 1 0 2-1 2-3 0-6-3-6-6s3-6 6-6z" fill="#f2dfb0"/>' +
-      '<rect x="4" y="5" width="2" height="2" fill="#e8291c"/><rect x="8" y="3" width="2" height="2" fill="#1b4fd6"/><rect x="11" y="6" width="2" height="2" fill="#1fae3a"/>',
+  aboutsite: svg(
+    // blueprint sheet: a flow of three boxes joined by arrows
+    '<rect x="2" y="1" width="12" height="14" fill="#000"/><rect x="3" y="2" width="10" height="12" fill="#2f6fd6"/>' +
+      '<rect x="5" y="3" width="6" height="2" fill="#fff"/><rect x="7" y="5" width="2" height="1" fill="#fff"/>' +
+      '<rect x="5" y="6" width="6" height="2" fill="#fff"/><rect x="7" y="8" width="2" height="1" fill="#fff"/>' +
+      '<rect x="5" y="9" width="6" height="2" fill="#fff"/><rect x="4" y="12" width="8" height="1" fill="#bcd4f6"/>',
   ),
   resume: svg(
     // pixel printer: paper sheet on top, grey body with a slot and a green light

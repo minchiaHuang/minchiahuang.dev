@@ -305,7 +305,19 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .sc-home { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; }
 .sc-name-big { font-size: 64px; line-height: 1.1; text-align: center; }
 .sc-job { font-family: var(--pixel-font); font-weight: 700; font-size: 32px; margin-top: 4px; }
-.sc-home-links { margin-top: 90px; display: flex; gap: 32px; font-weight: 700; font-size: 20px; }
+.sc-tagline { font-size: 20px; margin-top: 6px; text-align: center; }
+.sc-home-buttons { margin-top: 48px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+.sc-big-btn {
+  font: 700 22px var(--slab);
+  padding: 16px 28px;
+  background: #e9e9e9;
+  color: #000;
+  border: 2px solid #000;
+  box-shadow: 3px 3px #000;
+  cursor: pointer;
+}
+.sc-big-btn:active { box-shadow: none; transform: translate(3px, 3px); }
+.sc-home-links { margin-top: 56px; display: flex; gap: 32px; font-weight: 700; font-size: 20px; }
 
 .sc-inner { display: flex; gap: 48px; padding: 56px 48px 48px; }
 .sc-side { flex: none; width: 220px; }
@@ -313,9 +325,6 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .sc-side-sub { margin-top: 14px; font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: 1px; }
 .sc-side-nav { margin-top: 61px; font-weight: 700; font-size: 17px; }
 .sc-nav-item { height: 25px; line-height: 25px; margin-bottom: 30px; }
-.sc-nav-item.has-children { margin-bottom: 17px; }
-.sc-nav-children { margin: 0 0 13px 32px; display: flow-root; }
-.sc-nav-child { height: 19px; line-height: 19px; font-size: 17px; margin-bottom: 12px; }
 /* Current page: a small hollow ring sits inline before the label */
 .sc-nav-item.is-current::before {
   content: '';
@@ -335,25 +344,18 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .sc-main p { margin: 0 0 18px; text-align: justify; }
 .sc-main img { max-width: 100%; display: block; margin: 8px 0 12px; border: 1px solid #000; }
 .sc-resume + .sc-proj { border-top: 0; margin-top: 0; }
-.sc-art { max-width: 420px !important; }
 .sc-resume { display: flex; align-items: center; gap: 30px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 12px 8px 12px 12px; margin: 18px 0; }
 .sc-resume strong { font-size: 24px; line-height: 28px; letter-spacing: 1px; }
 .sc-main img.sc-resume-icon { flex: none; width: 56px; height: 56px; margin: 0; border: 0; image-rendering: pixelated; }
 .sc-job-meta { font-style: italic; margin-bottom: 4px; }
 .sc-job-block ul { margin: 4px 0 12px; padding-left: 22px; }
 .sc-proj { border-top: 1px solid #000; margin-top: 18px; padding-top: 4px; }
-.sc-card { display: flex; align-items: center; gap: 30px; width: 512px; max-width: 100%; height: 145px; border: 1px solid #000; padding: 0 38px; margin-bottom: 24px; text-decoration: none; color: #000 !important; text-align: left; }
-.sc-main p + .sc-card { margin-top: -4px; }
-.sc-card-text { display: block; min-width: 0; }
-.sc-card-big { display: block; font-size: 45px; line-height: 46px; -webkit-text-stroke: 1.2px #000; }
-.sc-card-small { display: block; font-weight: 700; font-size: 24px; line-height: 28px; letter-spacing: 1px; text-transform: uppercase; }
 .sc-contact-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
 .sc-contact-head h1 { margin: 0; }
 .sc-social { display: flex; gap: 10px; }
 .sc-social a { display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #333; background: #fff; }
 .sc-social svg { width: 36px; height: 36px; display: block; }
 
-.sc-main img.sc-card-icon { flex: none; display: block; width: 64px; height: 64px; margin: 0; border: 0; image-rendering: pixelated; }
 
 /* FiveLetters */
 :root { --slab: 'Rockwell', 'American Typewriter', 'Roboto Slab', 'Courier New', Georgia, serif; }
@@ -405,3 +407,32 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 
 /* DOS game: js-dos fills this black area */
 .dos { height: 100%; background: #000; }
+
+/* How this site was built: scrolling white page like Showcase */
+.as { height: 100%; overflow: auto; background: #fff; color: #000; font-family: var(--slab); padding: 28px 36px 40px; font-size: 18px; line-height: 24px; user-select: text; -webkit-font-smoothing: auto; }
+.as h1 { margin: 0 0 14px; font-size: 40px; line-height: 44px; -webkit-text-stroke: 1px #000; }
+.as h2 { margin: 28px 0 8px; font-size: 24px; line-height: 30px; letter-spacing: 1px; }
+.as a { color: #0000ee; }
+.as-flow { display: block; width: 100%; max-width: 620px; margin: 18px 0 0; font-family: var(--slab); }
+
+/* Phone-width standalone page: Showcase sits maximised, so give it a top bar instead of a side column. */
+@media (max-width: 768px) {
+  .sc-inner { flex-direction: column; gap: 20px; padding: 20px 16px 32px; }
+  .sc-side { width: auto; }
+  .sc-side-name { font-size: 28px; line-height: 30px; margin: 0; white-space: normal; }
+  .sc-side-name br { display: none; }
+  .sc-side-sub { margin-top: 6px; font-size: 18px; line-height: 22px; }
+  .sc-side-nav { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; }
+  .sc-nav-item { height: auto; line-height: 28px; margin: 0; }
+  .sc-nav-item.is-current::before { display: none; }
+  .sc-nav-item.is-current a { text-decoration: none; border-bottom: 2px solid currentColor; }
+  .sc-main { width: 100%; font-size: 16px; line-height: 22px; }
+  .sc-main h1 { font-size: 40px; line-height: 44px; }
+  .sc-main p { text-align: left; }
+  .sc-main img { max-width: 100%; height: auto; }
+  .sc-name-big { font-size: 40px; padding: 0 16px; }
+  .sc-job { font-size: 24px; }
+  .sc-home-links { margin-top: 36px; flex-wrap: wrap; justify-content: center; gap: 12px 24px; font-size: 16px; }
+  .sc-resume { gap: 16px; }
+  .as { padding: 20px 16px 32px; font-size: 16px; }
+}

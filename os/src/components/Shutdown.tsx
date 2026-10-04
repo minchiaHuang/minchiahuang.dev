@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// os-spec §4.3: dark full-screen log with click-time timestamps. Per-line timing is unverified,
-// so lines are revealed at a steady pace.
+// Dark full-screen log with click-time timestamps; lines are revealed at a steady pace.
 const hms = (d: Date) => `${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
 
 export function shutdownLines(t: string): string[] {
