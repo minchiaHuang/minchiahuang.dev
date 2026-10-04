@@ -1,10 +1,11 @@
 # STATUS
 
-**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e），上線後的畫面問題已修（PR #27–#33，main b8e5a76）；之後是內容改寫。
+**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e），上線後的畫面問題已修（PR #27–#33，main b8e5a76）；內容改寫 B（黑客松標籤、Hackathons 資料夾、Showcase 專案目錄）已上線（2026-10-05，PR #36 → main 5c34c06），剩卡片縮圖。
 
-**最後驗證**：2026-10-05 AEDT，`fix/camera-ignore-reduced-motion` `bash bin/verify.sh` 綠（9 pass）；headless Chrome 模擬 `prefers-reduced-motion: reduce`，idle 鏡頭 4 秒內有移動。再之前 `feat/imac-favicon` `FLAT_CHECK_PORT=8297 bash bin/verify.sh` 綠（9 pass；預設 8197 被 hackathon-tag worktree 的 vite preview 占用）。再之前 `fix/og-image` `bash bin/verify.sh` 綠（9 pass）。再之前 main b8e5a76（PR #33）合併前 `bash bin/verify.sh` 綠（9 pass）；正式站用真 GPU（headless Chrome `--use-angle=metal`）截 idle / desk / monitor / freecam 正常，罐子與螢幕不再閃。再之前 2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
+**最後驗證**：2026-10-05 AEDT，main 5c34c06（PR #36）`bash bin/verify.sh` 綠（9 pass）；合併前 Playwright／Orca 瀏覽器實點 7 項全過（Hackathons 篩選、名次小字、選取反白、Games logo、卡片跳轉與返回、Terminal open、console 無錯）；正式站 /os/ bundle 已含新文字。再之前 `fix/camera-ignore-reduced-motion` `bash bin/verify.sh` 綠（9 pass）；headless Chrome 模擬 `prefers-reduced-motion: reduce`，idle 鏡頭 4 秒內有移動。再之前 `feat/imac-favicon` `FLAT_CHECK_PORT=8297 bash bin/verify.sh` 綠（9 pass；預設 8197 被 hackathon-tag worktree 的 vite preview 占用）。再之前 `fix/og-image` `bash bin/verify.sh` 綠（9 pass）。再之前 main b8e5a76（PR #33）合併前 `bash bin/verify.sh` 綠（9 pass）；正式站用真 GPU（headless Chrome `--use-angle=metal`）截 idle / desk / monitor / freecam 正常，罐子與螢幕不再閃。再之前 2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
 
 ## 已完成（2026-10-04）
+- 內容改寫 B：黑客松標籤（2026-10-05，PR #36 → 5c34c06）：黑客松是標籤不是分類（使用者選定）。`profile.ts` 加 `tag`、`hackathon`、`award`；LearnGuard、VaxAgent meta 補 2026（VaxAgent 為 HSIL Hackathon, Harvard (Sydney)）。Projects 資料夾名稱下有灰色名次字；Tommy HD › Hackathons 打開篩選後的 Projects（「◀ All projects」）；Showcase › Projects 頁頂 5 張文字目錄卡片，點了捲到該段，每段結尾「↑ Back to projects」；◀／↑ 加 U+FE0E 避免變 emoji。設計稿 Figma 頁「04 Content」區塊 50:519（B1b、B2、B3、B4a–d）。
 - 鏡頭不再理會系統的「減少動態」（2026-10-05，`fix/camera-ignore-reduced-motion`）：PR #18 讓開了減少動態的電腦（Windows 動畫效果關閉、macOS 減少動態）鏡頭完全不動；使用者選擇跟參考網站一樣，所有訪客都有飄移、滑鼠視差與轉場動畫。
 - favicon 換成 iMac G3 側面（2026-10-05，`feat/imac-favicon`）：Figma 頁「05 Logo」選定 A2（J 鼻子臉，使用者同意的 Apple 臉例外，記在 CREDITS.md）；`tools/make-icons.sh` 的 180px 改淺底 `#f2efe9`、留 16px 邊。
 - og.jpg 重拍（2026-10-05，`fix/og-image`）：desk 鏡頭的 iMac G3＋Aqua OS，1200×630；`?shot=` 模式不再掛 Résumé 入口按鈕。順手把 STATUS 裡參考網站的網址改成「參考網站」（clean check 擋）。
@@ -27,9 +28,10 @@
 - `/favicon.ico` 回 404（`/os/` 頁瀏覽器會去要）。
 - `gh pr merge --squash` 的 commit 作者是個人 Gmail（已公開在歷史中）；要在 GitHub Settings → Emails 勾「Keep my email addresses private」，之後的 merge 才會用 noreply。
 - `os/public/showcase/ve-room-night.jpg` 已沒有頁面使用，先保留。
+- Dock 在已開啟且在最前面的視窗上再點一次，畫面沒有變化（`windows.ts` 只提高 z-index）；實測 512 次點擊都有命中，不是 bug。要不要加 Dock 圖示彈跳回饋待使用者決定。
 - 沒在真 GPU 瀏覽器確認過斜角看螢幕時遮擋平面邊緣（只看過 headless Chrome）。
 
 ## 下一步
 1. 使用者在 https://minchiahuang.dev 用真瀏覽器檢查（入場動畫、螢幕點擊、Résumé PDF、DOS 遊戲、半透明殼），有問題再開修正 PR。
-2. 內容改寫（Figma 04 Content）：Projects 加 Hackathon 分類，補 Tommy HD 裡的 Hackathons 資料夾。
+2. 使用者補 LearnGuard、VaxAgent、Datathon 的截圖（自己的作品，橫式、高約 180–240px 為佳），再把 5 張縮圖（56×56）放進 Showcase 目錄卡片（`Showcase.tsx` 卡片內已留註解位置），新圖補 CREDITS.md。
 3. Phase 3 AI 道具（選做）。
