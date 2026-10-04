@@ -5,8 +5,11 @@ import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 export default class Renderers {
   readonly scene = new THREE.Scene();
   readonly cssScene = new THREE.Scene();
+  // Near 300 (~33 cm), not 10: depth precision scales with near, and at 10 the far keyframes
+  // could not resolve layers 0.5 mm apart (can labels), which z-fought as black stripes. The
+  // closest view (monitor) still keeps every surface 1,300+ units away.
   readonly camera = new THREE.PerspectiveCamera(
-    35, window.innerWidth / window.innerHeight, 10, 900000,
+    35, window.innerWidth / window.innerHeight, 300, 900000,
   );
 
   readonly gl: THREE.WebGLRenderer;
