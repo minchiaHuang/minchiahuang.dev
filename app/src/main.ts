@@ -45,15 +45,18 @@ function start3D() {
   let audio: AudioManager | undefined;
   const playTick = () => audio?.typeTick();
 
-  // The prompt, the info card and the entry buttons mount once the BIOS is done. In shot mode only idle shows the prompt.
+  // The prompt, the info card and the entry buttons mount once the BIOS is done. In shot mode only idle
+  // shows the prompt, and the entry buttons stay out so they don't land in og.jpg.
   window.addEventListener('loadingScreenDone', () => {
     if (!SHOT || SHOT === 'idle') new HelpPrompt(ui, playTick);
     new InfoOverlay(uiInteractive, playTick);
-    new EntryButtons(uiInteractive, (target) => {
-      // Same event as hovering the monitor: Camera zooms in, and the prompt and info card react.
-      window.dispatchEvent(new CustomEvent('enterMonitor'));
-      openInOS(target);
-    });
+    if (!SHOT) {
+      new EntryButtons(uiInteractive, (target) => {
+        // Same event as hovering the monitor: Camera zooms in, and the prompt and info card react.
+        window.dispatchEvent(new CustomEvent('enterMonitor'));
+        openInOS(target);
+      });
+    }
   });
 
   if (SHOT === 'loading') {

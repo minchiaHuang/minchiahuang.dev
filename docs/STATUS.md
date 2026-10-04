@@ -2,10 +2,11 @@
 
 **一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e），上線後的畫面問題已修（PR #27–#33，main b8e5a76）；之後是內容改寫。
 
-**最後驗證**：2026-10-05 AEDT，main b8e5a76（PR #33）合併前 `bash bin/verify.sh` 綠（9 pass）；正式站用真 GPU（headless Chrome `--use-angle=metal`）截 idle / desk / monitor / freecam 正常，罐子與螢幕不再閃。再之前 2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
+**最後驗證**：2026-10-05 AEDT，`fix/og-image` `bash bin/verify.sh` 綠（9 pass）。再之前 main b8e5a76（PR #33）合併前 `bash bin/verify.sh` 綠（9 pass）；正式站用真 GPU（headless Chrome `--use-angle=metal`）截 idle / desk / monitor / freecam 正常，罐子與螢幕不再閃。再之前 2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
 
 ## 已完成（2026-10-04）
-- 上線後畫面修正（2026-10-04～05）：PR #27 拿掉螢幕玻璃上的 CRT 雜訊與邊緣陰影；PR #28 拿掉污漬層與側板；PR #29 `app/public/_headers` 讓 `/models/*` 每次重新驗證（舊光照圖配新模型造成房間顏色壞掉）；PR #30 拿掉整個視窗的底片顆粒 overlay（`Renderers.ts`）；PR #31 鏡頭變慢（進螢幕 3200 ms、出螢幕 1600 ms、遠景↔桌面 1400 ms；時間與 henryheffernan.com 原本相同，但 iMac 螢幕較小、放大倍數 4.7x 對 2.6x）；PR #32 隱藏烘焙的 `Screen` mesh（遠景與遮擋平面 z-fighting 成黑色條紋）；PR #33 相機 near 10 → 300（罐子標籤 0.5 mm 的貼面在遠景 z-fighting）。
+- og.jpg 重拍（2026-10-05，`fix/og-image`）：desk 鏡頭的 iMac G3＋Aqua OS，1200×630；`?shot=` 模式不再掛 Résumé 入口按鈕。順手把 STATUS 裡參考網站的網址改成「參考網站」（clean check 擋）。
+- 上線後畫面修正（2026-10-04～05）：PR #27 拿掉螢幕玻璃上的 CRT 雜訊與邊緣陰影；PR #28 拿掉污漬層與側板；PR #29 `app/public/_headers` 讓 `/models/*` 每次重新驗證（舊光照圖配新模型造成房間顏色壞掉）；PR #30 拿掉整個視窗的底片顆粒 overlay（`Renderers.ts`）；PR #31 鏡頭變慢（進螢幕 3200 ms、出螢幕 1600 ms、遠景↔桌面 1400 ms；時間與參考網站原本相同，但 iMac 螢幕較小、放大倍數 4.7x 對 2.6x）；PR #32 隱藏烘焙的 `Screen` mesh（遠景與遮擋平面 z-fighting 成黑色條紋）；PR #33 相機 near 10 → 300（罐子標籤 0.5 mm 的貼面在遠景 z-fighting）。
 - iMac G3 改版（整合分支 `feat/imac-redesign`，agent flow 三個 worker）：PR #23 Blender 場景重建（四人長桌、iMac G3＋鍵盤冰球滑鼠，半透明殼另出 `shell.glb` 不烘焙）；PR #22 OS 改 Mac OS X 10.0 Aqua（選單列、Dock、Projects/Résumé/Contact/Terminal/Games/Tommy HD，4:3 1024x768，Apple 原廠圖示與遊戲原廠 logo 進 git，使用者 2026-10-04 同意的授權例外，記在 CREDITS.md）；PR #24 app 整合（shell 即時 MeshPhysicalMaterial、iframe 1024x768、鏡頭重調、咖啡蒸氣與音效位置）。設計稿在 Figma eDceUbam5oYe1EmYsYF8FS 頁「03 OS Skins」（42:519 為定稿）。
 - 2B entry-flow（PR #11 → 8eeb1c8）：入口按鈕、新鏡頭關鍵格、BIOS 文字。
 - 螢幕斜三角修正（PR #13 → b6d9bfd）：玻璃疊層改沿螢幕法線偏移；CSS3D 遮擋平面往前 1 單位，避開烘焙 Screen mesh 的 z-fighting。
@@ -21,7 +22,6 @@
 - iframe 仍有 `jitter` CSS 動畫（`app/src/style.css:150`，每 0.3 秒次像素抖動）；測過不會產生顆粒，是否拿掉待使用者決定。
 - `blender/preview/main.js` 的 VIEWS 還是舊鏡頭數字（註解說要和 Camera.ts 一致）。
 - 遠端分支 `chore/os-aqua-screenshots` 只放 PR #22 截圖，可由使用者刪除。
-- og.jpg 左下角帶到頁面上的兩個入口按鈕（小瑕疵；現在只剩一個按鈕，重拍 og.jpg 時一起處理）。
 - `/favicon.ico` 回 404（`/os/` 頁瀏覽器會去要）。
 - `gh pr merge --squash` 的 commit 作者是個人 Gmail（已公開在歷史中）；要在 GitHub Settings → Emails 勾「Keep my email addresses private」，之後的 merge 才會用 noreply。
 - `os/public/showcase/ve-room-night.jpg` 已沒有頁面使用，先保留。
@@ -29,6 +29,5 @@
 
 ## 下一步
 1. 使用者在 https://minchiahuang.dev 用真瀏覽器檢查（入場動畫、螢幕點擊、Résumé PDF、DOS 遊戲、半透明殼），有問題再開修正 PR。
-2. 上線後重拍 og.jpg（順便解決左下角入口按鈕的舊瑕疵）。
-3. 內容改寫（Figma 04 Content）：Projects 加 Hackathon 分類，補 Tommy HD 裡的 Hackathons 資料夾。
-4. Phase 3 AI 道具（選做）。
+2. 內容改寫（Figma 04 Content）：Projects 加 Hackathon 分類，補 Tommy HD 裡的 Hackathons 資料夾。
+3. Phase 3 AI 道具（選做）。
