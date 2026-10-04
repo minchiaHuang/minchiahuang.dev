@@ -25,6 +25,7 @@
 - 沒在真 GPU 瀏覽器確認過斜角看螢幕時遮擋平面邊緣（只看過 headless Chrome）。
 
 ## 下一步
-1. 改版（Figma 檔 eDceUbam5oYe1EmYsYF8FS「Tommy-Huang」）：參考頁（參考網站截圖）、3D 候選 8 款都已放上。使用者偏好 iMac G3 半透明蛋殼＋同款鍵盤滑鼠，色彩版渲染中；選定後寫實作計畫（半透明殼無法烘焙，three.js 需即時透明材質）。
-2. 之後：OS 外觀候選（03 OS Skins）、內容對照與改寫（04 Content，Projects 加 Hackathon 分類）。
-3. Phase 3 AI 道具（選做）。
+1. 使用者在 Cloudflare Pages 的 `feat/imac-redesign` 預覽網址用真瀏覽器檢查（入場動畫、螢幕點擊、Résumé PDF、DOS 遊戲、半透明殼），沒問題就合併「feat/imac-redesign → main」的 PR 上線。
+2. 上線後重拍 og.jpg（順便解決左下角入口按鈕的舊瑕疵）。
+3. 內容改寫（Figma 04 Content）：Projects 加 Hackathon 分類，補 Tommy HD 裡的 Hackathons 資料夾。
+4. Phase 3 AI 道具（選做）。
