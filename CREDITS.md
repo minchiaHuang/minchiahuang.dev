@@ -53,6 +53,7 @@ The screen noise and scanlines are a shader in `app/src/MonitorScreen.ts`; no vi
 |---|---|---|---|
 | `app/public/404.html` | Not-found page | Written for this project | Own work |
 | `app/public/_redirects` | Cloudflare Pages redirects for the old site's URLs | Written for this project | Own work |
+| `app/public/_headers` | Cloudflare Pages cache headers for the baked models and lightmaps | Written for this project | Own work |
 
 ## AI prop
 

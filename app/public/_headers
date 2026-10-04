@@ -1,0 +1,5 @@
+# A bake replaces models/*.glb and their *.webp lightmaps under the same names. Pages sends
+# .glb with max-age=0 but images with max-age=14400, so a returning visitor got new geometry
+# with an old cached lightmap. Revalidate both on every load (ETag makes it a cheap 304).
+/models/*
+  Cache-Control: public, max-age=0, must-revalidate
