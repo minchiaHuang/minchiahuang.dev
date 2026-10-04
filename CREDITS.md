@@ -44,10 +44,14 @@ The screen noise and scanlines are a shader in `app/src/MonitorScreen.ts`; no vi
 | `app/public/images/favicon.svg` | Pixel CRT favicon | Drawn for this project | Own work |
 | `app/public/images/favicon-32.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
 | `app/public/images/apple-touch-icon.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
+| `app/public/images/og.jpg` | Social preview, a screenshot of this site | Own work | Own work |
 
 ## Site files (app/public/)
 
-No files yet.
+| Path | What | Source | Licence |
+|---|---|---|---|
+| `app/public/404.html` | Not-found page | Written for this project | Own work |
+| `app/public/_redirects` | Cloudflare Pages redirects for the old site's URLs | Written for this project | Own work |
 
 ## AI prop
 
