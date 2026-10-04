@@ -5,6 +5,7 @@ import Resources from './Resources';
 import Renderers, { hasWebGL } from './Renderers';
 import LoadingScreen from './LoadingScreen';
 import BakedModel from './BakedModel';
+import ShellModel from './ShellModel';
 import Camera from './Camera';
 import MonitorScreen from './MonitorScreen';
 import AudioManager from './AudioManager';
@@ -14,8 +15,7 @@ import InfoOverlay from './InfoOverlay';
 import EntryButtons, { openInOS } from './EntryButtons';
 import { SHOT } from './shot';
 import { shouldUseFlatOS, readFlatEnv, goFlat } from './flatMode';
-
-const BAKED_SCALE = 900;
+import { BAKED_SCALE, screenSizeFromExtras } from './screenGeometry';
 
 const ui = document.getElementById('ui')!;
 const uiInteractive = document.getElementById('ui-interactive')!;
@@ -82,13 +82,20 @@ function start3D() {
       for (const [model, texture] of models) {
         renderers.scene.add(new BakedModel(resources.gltf(model), resources.texture(texture), BAKED_SCALE).object);
       }
+      renderers.scene.add(new ShellModel(resources.gltf('shellModel'), BAKED_SCALE).object);
       const computer = resources.gltf('computerSetupModel').scene;
       computer.updateMatrixWorld(true);
       const anchor = computer.getObjectByName('ScreenAnchor');
       const placement = anchor
-        ? { position: anchor.getWorldPosition(new THREE.Vector3()), quaternion: anchor.getWorldQuaternion(new THREE.Quaternion()) }
+        ? {
+          position: anchor.getWorldPosition(new THREE.Vector3()),
+          quaternion: anchor.getWorldQuaternion(new THREE.Quaternion()),
+          // GLTFLoader puts node extras in userData.
+          size: screenSizeFromExtras(anchor.userData, BAKED_SCALE),
+        }
         : undefined;
       if (!anchor) console.warn('ScreenAnchor missing: using the built-in screen position');
+      else if (!placement?.size) console.warn('ScreenAnchor has no width/height: using the built-in screen size');
       monitor = new MonitorScreen(
         renderers.scene, renderers.cssScene, renderers.camera,
         resources.texture('monitorSmudgeTexture'), resources.texture('monitorShadowTexture'),

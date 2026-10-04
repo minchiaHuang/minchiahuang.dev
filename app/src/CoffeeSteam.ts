@@ -89,7 +89,8 @@ export default class CoffeeSteam {
       },
     });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(280, 700), this.material);
-    mesh.position.set(1670, 200, 900);
+    // Mug top at glTF ≈ (1.52, -0.14, 1.06), i.e. app (1370, -125, 960); the plane's foot sits just inside it.
+    mesh.position.set(1370, 200, 960);
     scene.add(mesh);
   }
 

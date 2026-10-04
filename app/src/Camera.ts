@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { QuinticInOut, ExponentialOut, bezier, type EasingFn } from './Easing';
 import Tween from './Tween';
 import { SHOT } from './shot';
+import { DEFAULT_ANCHOR as SCREEN, DEFAULT_SIZE, fitDistance } from './screenGeometry';
 
 export type CameraKey = 'idle' | 'monitor' | 'loading' | 'desk' | 'orbitControlsStart';
 
@@ -14,14 +15,17 @@ const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 // keyframe, and the idle drift and desk parallax hold still.
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Keyframes for the v2 scene (app units = glTF units x 900). The monitor distance fits the
-// 1024 px tall screen in the 35° field of view with ~15% margin: 512 / tan(17.5°) x 1.15 ≈ 1870.
+// Keyframes for the iMac scene (app units = glTF units x 900). The monitor distance fits the
+// glass (ScreenAnchor height, ~710 units) in the 35° field of view with ~15% margin:
+// 355 / tan(17.5°) x 1.15 ≈ 1295. The old CRT's 1024 tall screen gave 1870 the same way.
+const MONITOR_DISTANCE = fitDistance(DEFAULT_SIZE.h, 35);
 const KEYS: Record<CameraKey, Keyframe> = {
-  idle: { position: v(-17500, 10500, 18500), focalPoint: v(0, -600, 0) },
-  monitor: { position: v(0, 950, 1870 + 255), focalPoint: v(0, 950, 255) },
-  desk: { position: v(0, 1700, 5200), focalPoint: v(0, 550, 0) },
-  loading: { position: v(-30000, 32000, 34000), focalPoint: v(0, -4500, 0) },
-  orbitControlsStart: { position: v(-14000, 9000, 15500), focalPoint: v(0, 300, 0) },
+  idle: { position: v(-12250, 7350, 12950), focalPoint: v(0, -600, 0) },
+  monitor: { position: v(SCREEN.x, SCREEN.y, SCREEN.z + MONITOR_DISTANCE), focalPoint: v(SCREEN.x, SCREEN.y, SCREEN.z) },
+  desk: { position: v(0, 1500, 4600), focalPoint: v(0, 350, 0) },
+  loading: { position: v(-21000, 22400, 23800), focalPoint: v(0, -3150, 0) },
+  // Front-left three-quarter view, close enough to see through the translucent shell.
+  orbitControlsStart: { position: v(-4200, 2600, 5200), focalPoint: v(0, 100, 0) },
 };
 
 const SMOOTH_OUT = bezier(0.13, 0.99, 0, 1);
@@ -227,10 +231,12 @@ export default class Camera {
     // idle: sine drift around the keyframe
     const idle = this.frames.idle.position;
     idle.x = Math.sin((elapsed + 19000) * 0.00008) * this.idleOrigin.x;
-    idle.y = Math.sin((elapsed + 1000) * 0.000004) * 4000 + this.idleOrigin.y - 3000;
+    idle.y = Math.sin((elapsed + 1000) * 0.000004) * 2800 + this.idleOrigin.y - 2100;
 
-    // monitor: pull back on tall windows, push in on desktop
-    this.frames.monitor.position.z = this.monitorOrigin.z + ratio * 1200 - (w < 768 ? 0 : 600);
+    // monitor: pull back on tall windows, push in on desktop. Fractions of the fit distance, so
+    // the old CRT's +1200 / -600 at 1870 keep their proportions for the smaller screen.
+    this.frames.monitor.position.z =
+      this.monitorOrigin.z + (ratio * 0.64 - (w < 768 ? 0 : 0.32)) * MONITOR_DISTANCE;
 
     // desk: chase the mouse; shot mode and reduced motion sit exactly on the keyframe
     if (SHOT || REDUCED_MOTION) {
