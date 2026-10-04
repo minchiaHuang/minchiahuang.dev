@@ -22,7 +22,7 @@
 | 5 | Apple 選單加「View 3D Desk」。 |
 | 6 | 架構：另寫 `MobileShell`，共用各 app 內容元件；`windows.ts`、`Window.tsx`、`App.tsx` 不動。 |
 | 7 | 頂部只有一條：左 ×、中 app 名稱、右 Apple「T」選單；手機不顯示時鐘。 |
-| 8 | Résumé 只做 PDF 全寬＋縮放＋Download，不做 HTML 文字版。 |
+| 8 | Résumé 只做 PDF 全寬＋點開原 PDF（Safari 內建檢視器縮放、下載），不做 HTML 文字版。 |
 | 9 | 橫向開遊戲時隱藏 Dock；叫出鍵盤時隱藏 Dock。 |
 | 10 | Dock 直向有小字標籤、橫向無；× 一直顯示；無 app 時標題為「Finder」；Projects 用列表、點一下開。 |
 | 11 | Showcase 手機首頁 = V1 卡片（內容見下）；「More Info…」開現有 About/Experience 內容，× 回卡片。 |
@@ -57,7 +57,7 @@
 | `mobile.css` | 手機樣式，全部 scope 在 `.m-shell` 底下；由 `MobileShell` import。 |
 
 - 版面：`.m-shell` 高度用 `100dvh`（不用 `100vh`，避免 iOS 網址列切到）；上 TopBar、中 app 區（自己捲動）、下 Dock。
-- 鍵盤偵測：`visualViewport` 高度明顯小於 layout viewport 時加 `.kb-open`，隱藏 Dock。
+- 鍵盤偵測：`visualViewport` 高度明顯小於 layout viewport 時加 `.kb-open`，隱藏 Dock。iOS 叫出鍵盤時 `100dvh` 不會變小，所以 `.kb-open` 時把 `visualViewport.height` 寫進 CSS 變數 `--m-vh`，`.m-shell` 改用它當高度，貼在鍵盤上方的東西才不會被蓋住。
 - 橫向：`(orientation: landscape)` 時 Dock 縮小無標籤；`current` 是遊戲時隱藏 Dock。
 - 內容元件沿用，桌機外觀不變；只加「可選」prop，預設值維持現行為：
   - `Projects`、`Games`、`HardDisk`：`tapToOpen?: boolean`（點一下開，取代雙擊）；`Projects` 另加 `layout?: 'grid' | 'list'`。
@@ -80,9 +80,11 @@
 ### Résumé
 iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`，改顯示預先轉好的頁面圖：
 - `tools/resume-pages.sh`：用 macOS 內建 `qlmanage`/`sips` 把 `os/public/showcase/MinChia-Tommy-Huang-Resume.pdf`（目前 1 頁）轉成 `os/public/showcase/resume-p1.png`（寬 1240px），並寫 `resume-pages.json`（頁數＋PDF 的 sha256）。不需要新套件。
+  - `qlmanage -t -s N` 的 N 是**長邊**：`-s 1240` 實測只得到 876×1240。A4 直式要用 `-s 1754` 才會是寬 1240；腳本轉完用 `sips -g pixelWidth` 確認寬度。
+  - `qlmanage` 只轉第 1 頁：腳本用 `mdls -name kMDItemNumberOfPages` 讀頁數，> 1 就報錯停下，不默默漏頁。
 - 單元測試：PDF 的 sha256 必須等於 json 裡記的值——換了 PDF 沒重轉就紅。
-- 手機 Résumé：圖片滿版、可捲動、可雙指縮放；上方 Download PDF 按鈕（連原 PDF）。
-- `CREDITS.md` 補新圖檔（自己的作品）。
+- 手機 Résumé：圖片寬度貼齊螢幕、可捲動；上方 Open PDF 按鈕，點圖片也一樣，都是直接開原 PDF（一般導覽），由 Safari 內建的 PDF 檢視器縮放、下載。不做 app 內縮放（使用者 2026-10-05 決定）：iOS 的雙指縮放會放大整頁，TopBar 和 Dock 會跟著跑掉。
+- `CREDITS.md` 不用改：`os/public/showcase/` 那一列已經涵蓋整個資料夾（自己的作品）。
 
 ## 4. Terminal 指令按鈕
 `Terminal` 的 `chips` 為 true 時，在輸入列下方加兩排 Aqua 膠囊按鈕：`help`、`cat about`、`ls`、`cd projects`、`open …`、`resume`、`contact`、`clear`。
@@ -91,7 +93,7 @@ iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`
 - 鍵盤彈出時 Dock 隱藏，按鈕列貼在鍵盤上方。
 
 ## 5. 遊戲虛擬按鍵
-**實作前先做 spike**：確認 js-dos 8.5.1 的 `Dos()` 回傳值拿得到 `ci`（`simulateKeyPress` / `sendKeyEvent`）。拿不到的備案：對 `document` 送合成 `KeyboardEvent`（js-dos 的鍵盤監聽掛在 document 上）。spike 結果決定 `send` 的實作，介面不變：`send(key, pressed)`。
+**實作前先做 spike**：確認 js-dos 8.5.1 拿得到 `ci`（`simulateKeyPress` / `sendKeyEvent`）。dist 裡有 `onEvent` 和 `ci-ready` 事件，最可能的路是 `Dos(el, { onEvent: (event, ci) => { if (event === 'ci-ready') … } })`，spike 先試這條。拿不到的備案：對 `document` 送合成 `KeyboardEvent`（js-dos 的鍵盤監聽掛在 document 上）。spike 結果決定 `send` 的實作，介面不變：`send(key, pressed)`。
 
 `keyLayouts.ts` 每款遊戲一份配置（純資料，可測）：
 
@@ -111,7 +113,7 @@ iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`
 - `app/src/flatMode.test.ts`：短邊規則與 `?desk=1`。
 - `os/src/phone.test.ts`：`isPhone` 邊界。
 - `os/src/mobile/state.test.ts`：open / close / moreInfo、遊戲歸屬、More Info 時 close 回卡片。
-- `os/src/mobile/keyLayouts.test.ts`：每款遊戲配置的鍵名都是 js-dos 認得的鍵碼。
+- `os/src/mobile/keyLayouts.test.ts`：每款遊戲配置用到的鍵碼，都要出現在 `os/node_modules/js-dos/dist/js-dos.js` 的 `KBD_*` 表裡（測試直接讀那個檔案解析，不和自己的常數比，免得變成套套邏輯）。
 - Résumé 頁面圖 hash 測試。
 
 `bin/verify.sh` 不改（AGENTS.md 規定）；`tools/flat-check.sh` 的 400px 檢查仍成立（根元素保留 `class="screen"`）。
@@ -119,7 +121,7 @@ iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`
 人工檢查：
 - headless Chrome 在 390×844、360×780、844×390 截圖每個 app，對照 Figma 06 Mobile。
 - 桌機 1440px 截圖確認 3D 場景與 iframe OS 不變。
-- 使用者用真 iPhone Safari 看：軟鍵盤、safe area、Doom 按住連發、PDF 圖縮放（headless 測不到這些）。
+- 使用者用真 iPhone Safari 看：軟鍵盤、safe area、Doom 按住連發、點 Résumé 圖片能開 PDF 並縮放（headless 測不到這些）。
 
 ## 7. 交付拆分
 三個 PR，依序合併，每個 PR 合併後手機版都是可用狀態：
