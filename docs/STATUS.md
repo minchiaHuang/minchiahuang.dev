@@ -10,6 +10,8 @@
 - 4A deploy-prep（PR #14 → 97aa363）：`404.html`、`_redirects`（舊網址 301，G7）、`tools/pages-check.sh`、`.node-version`、og.jpg、apple-touch-icon 補背景色、README 部署說明。
 - Phase 2 結尾預覽圖：`~/Desktop/Projects/minchiahuang.dev-previews/phase2-2026-10-04/`（app 截圖為修正後重拍）。
 
+- E2E（PR #16，test/playwright-agents，待使用者審 spec）：`@playwright/test` 1.63.0、Playwright test agents、`e2e/FLOWS.md`、F1 進入 OS 測試（`npx playwright test` 2 pass）。尚未接進 `bin/verify.sh`。
+
 ## 已知問題
 - og.jpg 左下角帶到頁面上的兩個入口按鈕（小瑕疵，不擋上線）。
 - `os/public/showcase/ve-room-night.jpg` 已沒有頁面使用，先保留。
@@ -18,4 +20,5 @@
 ## 下一步
 1. Phase 4B（計畫 2611 行起）：Cloudflare Pages 建專案、repo 公開、DNS 切換。每項先給使用者看步驟，同意後才做。
    Pages 設定：build `bash tools/fetch-dos-games.sh && npm run build`，output `app/dist`。
-2. 上線後：Phase 3 AI 道具（選做）。
+2. PR #16：使用者審 `e2e/enter-os.spec.ts` 後合併；問使用者要不要把 `npx playwright test` 接進 `bin/verify.sh`；再寫 F2、F3。
+3. 上線後：Phase 3 AI 道具（選做）。
