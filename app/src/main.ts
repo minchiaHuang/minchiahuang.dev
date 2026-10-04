@@ -98,7 +98,6 @@ function start3D() {
       else if (!placement?.size) console.warn('ScreenAnchor has no width/height: using the built-in screen size');
       monitor = new MonitorScreen(
         renderers.scene, renderers.cssScene, renderers.camera,
-        resources.texture('monitorSmudgeTexture'),
         placement,
       );
       steam = new CoffeeSteam(renderers.scene);
