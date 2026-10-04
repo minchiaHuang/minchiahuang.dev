@@ -1,17 +1,18 @@
-"""Check the bake output: lightmap UV overlap, black texels, texel density.
+"""Check the v2 bake output: lightmap UV overlap, black texels, noise, texel density.
 
-Run from the repo root after bake.py:
-    /Applications/Blender.app/Contents/MacOS/Blender -b -P blender/check_lightmap.py
+Run from the repo root after scene_v2.py, naming one group:
+    LIGHTMAP=v2/computer /Applications/Blender.app/Contents/MacOS/Blender -b -P blender/check_lightmap.py
+(v2/computer, v2/environment or v2/decor checks blender/out/<name>.glb against <name>.jpg.)
 
-Rasterises every TEXCOORD_1 triangle at 1024 px (pixel centres, so shared island edges
-are not counted) and reports texels covered by more than one triangle. Then samples
-lightmap.jpg on the covered texels and reports how many are near black.
+Rasterises every lightmap-UV triangle at 1024 px (pixel centres, so shared island edges
+are not counted) and reports texels covered by more than one triangle. Then samples the
+lightmap JPG on the covered texels and reports how many are near black, and how noisy it is.
 
-For the v2 bake (scene_v2.py) name one group, e.g. LIGHTMAP=v2/computer, to check
-blender/out/v2/computer.glb against computer.jpg. Its meshes (Computer + Screen) share one
-atlas, so they are joined first; the lightmap is the last UV set in either layout.
+The Computer group's meshes (Computer + Screen) share one atlas, so they are joined first;
+the lightmap is the last UV set.
 """
 import os
+import sys
 
 import bmesh
 import bpy
@@ -21,7 +22,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "blender", "out")
 RES = 1024
 STEM = os.environ.get("LIGHTMAP")
-GLB, JPG = (f"{STEM}.glb", f"{STEM}.jpg") if STEM else ("scene.glb", "lightmap.jpg")
+if not STEM:
+    print("set LIGHTMAP=v2/computer|v2/environment|v2/decor")
+    sys.exit(2)
+GLB, JPG = f"{STEM}.glb", f"{STEM}.jpg"
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=os.path.join(OUT, GLB))
@@ -33,7 +37,6 @@ if len(objs) > 1:
     bpy.ops.object.join()
 obj = bpy.context.view_layer.objects.active
 me = obj.data
-assert STEM or len(me.uv_layers) >= 2, "no second UV set (TEXCOORD_1) in scene.glb"
 
 bm = bmesh.new()
 bm.from_mesh(me)
@@ -86,6 +89,15 @@ lum = small.mean(-1)
 black = covered & (lum < 0.02)
 print(f"lightmap {w}x{h}  near-black covered texels {int(black.sum())} "
       f"({black.sum() / max(covered.sum(), 1):.2%})")
+
+# Noise: mean absolute Laplacian of luminance over covered texels whose 4 neighbours are also
+# covered (so island borders don't count). Lower is smoother; compare before/after a change.
+lum = small @ np.array([0.2126, 0.7152, 0.0722])
+inner = covered.copy()
+inner[1:-1, 1:-1] &= covered[:-2, 1:-1] & covered[2:, 1:-1] & covered[1:-1, :-2] & covered[1:-1, 2:]
+inner[0, :] = inner[-1, :] = inner[:, 0] = inner[:, -1] = False
+lap = np.abs(4 * lum[1:-1, 1:-1] - lum[:-2, 1:-1] - lum[2:, 1:-1] - lum[1:-1, :-2] - lum[1:-1, 2:])
+print(f"noise (mean |laplacian| on inner covered texels): {lap[inner[1:-1, 1:-1]].mean():.5f}")
 
 full = w / RES
 print(f"by material: texel density at {w} px (px per metre), share of its texels near black")

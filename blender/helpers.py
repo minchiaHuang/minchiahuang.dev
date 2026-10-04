@@ -1,4 +1,4 @@
-"""Helpers shared by bake.py (the W2-C learning bake) and scene_v2.py."""
+"""Helpers used by scene_v2.py."""
 import math
 
 import bpy
