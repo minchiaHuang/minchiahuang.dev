@@ -49,7 +49,8 @@ run_step "clean check" "bash tools/clean-check.sh"
 
 TESTS="$(git ls-files --cached --others --exclude-standard -- '*.test.ts' '*.test.mjs' | tr '\n' ' ')"
 if [[ -n "${TESTS// /}" ]]; then
-    run_step "unit tests" "node --test $TESTS"
+    # compress.test.mjs imports the root devDependencies, so install them before the tests run.
+    run_step "unit tests" "([ -d node_modules ] || npm ci --silent) && node --test $TESTS"
 else
     printf "→ %-28s ⏭  SKIP (no test files)\n" "unit tests"
 fi
