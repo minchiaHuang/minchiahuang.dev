@@ -29,22 +29,25 @@ mp3 "$UI/mouseclick1.ogg" "$OUT/mouse/mouse_down.mp3"
 mp3 "$UI/mouserelease1.ogg" "$OUT/mouse/mouse_up.mp3"
 mp3 "$IS/tick_001.ogg" "$OUT/cc/type.mp3"
 
-# Key presses: six isolated taps from a CC0 take of a 2002 Apple keyboard (Freesound 676417, suckmadeck).
-TAKE="$WORK/apple-keyboard-2002.mp3"
-if [[ ! -s "$TAKE" ]]; then curl -fsSL --retry 5 -o "$TAKE" https://cdn.freesound.org/previews/676/676417_4949349-hq.mp3; fi
-echo "c5468bc7085b95fdac5cba402659c353eee4164731e80cc99ad6e207aecbf1df  $TAKE" | shasum -a 256 -c - >/dev/null \
-  || { echo "checksum mismatch: apple-keyboard-2002.mp3" >&2; exit 1; }
-# tap <n> <start s> <gain dB>: 0.28 s of the take, faded at both ends, levelled to about -22 dB mean
+# Key presses: six isolated taps from a CC0 take of an Apple M0118 keyboard with ALPS orange
+# switches (Freesound 680714, robni7). Decoded to WAV first: seeking inside the MP3 is not exact.
+TAKE="$WORK/apple-m0118.mp3"
+if [[ ! -s "$TAKE" ]]; then curl -fsSL --retry 5 -o "$TAKE" https://cdn.freesound.org/previews/680/680714_3242494-hq.mp3; fi
+echo "0cceb08306e373f4dc0a32c793b392f6141358d204620ceb20db1fbdca41342c  $TAKE" | shasum -a 256 -c - >/dev/null \
+  || { echo "checksum mismatch: apple-m0118.mp3" >&2; exit 1; }
+ffmpeg -loglevel error -y -i "$TAKE" -ac 1 -ar 44100 "$WORK/apple-m0118.wav"
+# tap <n> <start s> <gain dB>: 0.28 s of the take, faded at both ends, levelled to about -26 dB mean
 tap() {
-  ffmpeg -loglevel error -y -ss "$2" -t 0.28 -i "$TAKE" -af "afade=t=in:d=0.003,afade=t=out:st=0.2:d=0.08,volume=$3dB" \
+  ffmpeg -loglevel error -y -ss "$2" -t 0.28 -i "$WORK/apple-m0118.wav" \
+    -af "afade=t=in:d=0.003,afade=t=out:st=0.2:d=0.08,volume=$3dB" \
     -ac 1 -ar 44100 -b:a 96k -map_metadata -1 -fflags +bitexact "$OUT/keyboard/key_$1.mp3"
 }
-tap 1 125.780 10.3
-tap 2 118.748 13.9
-tap 3 122.554 13.4
-tap 4 10.301 12.2
-tap 5 22.357 13.1
-tap 6 34.198 14.5
+tap 1 4.084 12.5
+tap 2 4.464 4.2
+tap 3 5.433 7.8
+tap 4 5.854 6.6
+tap 5 12.757 4.5
+tap 6 13.773 9.3
 
 # Startup: a 60 Hz hum with its harmonics swelling in over 2.5 s, plus a short high-voltage whine.
 ffmpeg -loglevel error -y -f lavfi -i "sine=f=60:d=3.5" -f lavfi -i "sine=f=120:d=3.5" \

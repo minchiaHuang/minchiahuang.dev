@@ -20,7 +20,7 @@ power strip, cables, cans, pizza boxes, mug, notebook, whiteboard sketch) is geo
 | Path | What | Source | Licence |
 |---|---|---|---|
 | `app/public/audio/mouse/` | Mouse down/up: `mouseclick1`, `mouserelease1` | Kenney UI Audio, https://kenney.nl/assets/ui-audio | CC0 1.0 |
-| `app/public/audio/keyboard/` | Key presses: six taps cut from "Typing on a 2002 Apple Mac Keyboard" by suckmadeck | Freesound, https://freesound.org/people/suckmadeck/sounds/676417/ | CC0 1.0 |
+| `app/public/audio/keyboard/` | Key presses: six taps cut from "Typing on Apple Standard Keyboard (ALPS SKCM Orange)" by robni7 | Freesound, https://freesound.org/people/robni7/sounds/680714/ | CC0 1.0 |
 | `app/public/audio/cc/` | Typewriter tick: `tick_001` | Kenney Interface Sounds, https://kenney.nl/assets/interface-sounds | CC0 1.0 |
 | `app/public/audio/startup/` | CRT power-on hum | Synthesised with ffmpeg in `tools/make-audio.sh` | Own work |
 | `app/public/audio/atmosphere/` | Room tone | Synthesised with ffmpeg in `tools/make-audio.sh` | Own work |
