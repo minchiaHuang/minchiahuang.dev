@@ -20,7 +20,7 @@ import type { Action } from './windows';
 import { parseOpenMessage, parseOpenQuery } from './remote';
 import type { OpenTarget, ShowcasePage } from './remote';
 
-// Screenshot states for review: ?shot=tmenu | dock | games | terminal | projects | resume | contact | selected
+// Screenshot states for review: ?shot=tmenu | dock | games | terminal | projects | hackathons | resume | contact | selected
 // | windows | maximized | minimized | shutdown | fiveletters | fiveletters-win | fiveletters-lose | credits
 // | dos-oregon | dos-doom | dos-scrabble, and sc-<page> (Showcase.tsx).
 const shot = new URLSearchParams(location.search).get('shot');
@@ -31,6 +31,7 @@ const initialOpen = (): AppId[] => {
   if (shot === 'credits') return ['showcase', 'credits'];
   if (shot?.startsWith('dos-')) return ['showcase', shot.slice(4) as AppId];
   if (shot === 'games' || shot === 'tmenu') return ['showcase', 'games'];
+  if (shot === 'hackathons') return ['showcase', 'projects'];
   if (shot === 'terminal' || shot === 'projects' || shot === 'resume' || shot === 'contact') return ['showcase', shot];
   return ['showcase'];
 };
@@ -59,6 +60,7 @@ export default function App() {
 
   const [showcasePage, setShowcasePage] = useState<Request<{ page: ShowcasePage }>>(null);
   const [projectReq, setProjectReq] = useState<Request<{ slug: string }>>(null);
+  const [projectFilter, setProjectFilter] = useState<Request<{ hackathons: true }>>(shot === 'hackathons' ? { hackathons: true, n: 1 } : null);
 
   // Opening a window or pressing inside one clears the desktop selection. Closing Showcase or Projects drops the
   // page or project it was last asked for: a window mounts with its request, so a stale one would reopen the old
@@ -66,7 +68,10 @@ export default function App() {
   const send = useCallback((a: Action) => {
     if (a.type === 'open' || a.type === 'focus') setSelected(null);
     if (a.type === 'close' && a.id === 'showcase') setShowcasePage(null);
-    if (a.type === 'close' && a.id === 'projects') setProjectReq(null);
+    if (a.type === 'close' && a.id === 'projects') {
+      setProjectReq(null);
+      setProjectFilter(null);
+    }
     dispatch(a);
   }, []);
   const open = useCallback((id: AppId) => send({ type: 'open', id }), [send]);
@@ -111,6 +116,7 @@ export default function App() {
     setShutdownAt(null);
     setShowcasePage(null);
     setProjectReq(null);
+    setProjectFilter(null);
   }, []);
   // NEEDS DECISION: Restart skips the shutdown log; it reboots at once and reopens Showcase, as at first load.
   const restart = useCallback(() => {
@@ -131,9 +137,18 @@ export default function App() {
       case 'games':
         return <Games onOpen={open} />;
       case 'harddisk':
-        return <HardDisk onProjects={() => open('projects')} onExperience={() => showPage('experience')} />;
+        return (
+          <HardDisk
+            onProjects={() => open('projects')}
+            onHackathons={() => {
+              setProjectFilter((prev) => ({ hackathons: true, n: (prev?.n ?? 0) + 1 }));
+              open('projects');
+            }}
+            onExperience={() => showPage('experience')}
+          />
+        );
       case 'projects':
-        return <Projects request={projectReq ?? undefined} />;
+        return <Projects request={projectReq ?? undefined} filter={projectFilter ?? undefined} />;
       case 'resume':
         return <Resume />;
       case 'contact':

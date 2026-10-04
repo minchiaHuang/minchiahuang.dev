@@ -275,6 +275,7 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .finder-icon { width: 64px; height: 64px; padding: 2px; border-radius: 4px; }
 .finder-name { padding: 0 6px; border-radius: 8px; font-size: 13px; line-height: 17px; text-align: center; }
 .finder-item.is-selected .finder-icon, .finder-item.is-selected .finder-logo { background: rgba(0, 0, 0, 0.12); }
+.finder-sub { margin-top: -4px; font-size: 11px; line-height: 14px; color: #808080; text-align: center; }
 .finder-item.is-selected .finder-name { background: var(--select); color: #fff; }
 .finder-logo { width: 108px; height: 84px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .finder-logo img { max-width: 104px; max-height: 80px; }
@@ -403,6 +404,13 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .sc-resume { display: flex; align-items: center; gap: 24px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 12px 8px 12px 12px; margin: 18px 0; }
 .sc-resume strong { font-size: 19px; line-height: 26px; }
 .sc-main img.sc-resume-icon { flex: none; width: 56px; height: 56px; margin: 0; border: 0; }
+.sc-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+.sc-card { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 1px solid #bdbdbd; border-radius: 6px; background: #fff; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.sc-card-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sc-card-name { max-width: 15em; font-size: 21px; line-height: 28px; font-weight: 800; text-wrap: balance; }
+.sc-card-tag { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1.5px; color: #6b7a90; }
+.sc-card-go { color: #9aa4b2; font-size: 24px; }
+.sc-back { margin: 8px 0 0; }
 .sc-job-meta { font-style: italic; margin-bottom: 4px; }
 .sc-job-block ul { margin: 4px 0 12px; padding-left: 22px; }
 .sc-proj { border-top: 1px solid #ccc; margin-top: 18px; padding-top: 4px; }
