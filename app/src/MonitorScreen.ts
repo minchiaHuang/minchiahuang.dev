@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
-import { SHOT } from './shot';
 import { SCREEN_PX as SCREEN, DEFAULT_ANCHOR, DEFAULT_SIZE } from './screenGeometry';
 
 // No inset: the ScreenAnchor size is exactly the visible glass, and the OS is laid out for the
@@ -24,27 +23,6 @@ type OsMessage =
 
 type InComputerEvent = Event & { inComputer?: boolean; clientX?: number; clientY?: number; key?: string };
 
-// CRT noise and scanlines, drawn by a shader, so no clip has to be downloaded or looped.
-const NOISE_VERTEX = /* glsl */ `
-  varying vec2 vUv;
-  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-`;
-const NOISE_FRAGMENT = /* glsl */ `
-  uniform float uTime;
-  uniform float uOpacity;
-  varying vec2 vUv;
-  float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-  void main() {
-    // 256x192 grain cells (4 CSS px each) that change 24 times a second
-    vec2 cell = floor(vUv * vec2(256.0, 192.0));
-    float grain = hash(cell + floor(uTime * 24.0));
-    // 192 scanlines with a slow roll
-    float scan = 0.5 + 0.5 * sin((vUv.y + uTime * 0.02) * 192.0 * 6.2831853);
-    float v = grain * 0.6 + scan * 0.4;
-    gl_FragColor = vec4(vec3(v), uOpacity);
-  }
-`;
-
 /**
  * The monitor: a real iframe placed in 3D with CSS3D, a GL plane that punches a hole in the canvas
  * so the room can hide it, glass layers in front of it, a side box, and a distance/angle dimmer.
@@ -59,7 +37,6 @@ export default class MonitorScreen {
   private size: { w: number; h: number };
   private iframe!: HTMLIFrameElement;
   private dimmer!: THREE.Mesh;
-  private noise!: THREE.ShaderMaterial;
   private inComputer = false;
   private prevInComputer = false;
 
@@ -68,7 +45,6 @@ export default class MonitorScreen {
     private cssScene: THREE.Scene,
     private camera: THREE.PerspectiveCamera,
     smudge: THREE.Texture,
-    shadow: THREE.Texture,
     placement?: { position: THREE.Vector3; quaternion: THREE.Quaternion; size?: { w: number; h: number } },
   ) {
     // The bake exports a ScreenAnchor node; the constants only apply when it is missing.
@@ -80,7 +56,7 @@ export default class MonitorScreen {
     if (import.meta.env.DEV) console.log(`screen at ${this.position.x},${this.position.y},${this.position.z}`);
     this.bindPointer();
     this.createIframe();
-    const maxOffset = this.createLayers(smudge, shadow);
+    const maxOffset = this.createLayers(smudge);
     this.createSides(maxOffset);
     this.createDimmer(maxOffset);
   }
@@ -171,23 +147,17 @@ export default class MonitorScreen {
 
   // ---- glass layers ------------------------------------------------------
 
-  private createLayers(smudge: THREE.Texture, shadow: THREE.Texture): number {
+  private createLayers(smudge: THREE.Texture): number {
     smudge.colorSpace = THREE.SRGBColorSpace;
-    shadow.colorSpace = THREE.SRGBColorSpace;
-    this.noise = new THREE.ShaderMaterial({
-      vertexShader: NOISE_VERTEX, fragmentShader: NOISE_FRAGMENT,
-      uniforms: { uTime: { value: 0 }, uOpacity: { value: 0.18 } },
-      transparent: true, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false,
-    });
 
     // Layer order decides draw order among equal depths.
     type Layer = {
-      texture?: THREE.Texture; material?: THREE.Material; blending?: THREE.Blending; opacity?: number; offset: number;
+      texture: THREE.Texture; blending?: THREE.Blending; opacity?: number; offset: number;
     };
     const layers: Layer[] = [
+      // The CRT noise/scanline and edge-shadow layers were dropped: on the Aqua OS they read as a
+      // dark filter over the screen.
       { texture: smudge, blending: THREE.AdditiveBlending, opacity: 0.12, offset: 24 },
-      { texture: shadow, blending: THREE.NormalBlending, opacity: 0.6, offset: 5 },
-      { material: this.noise, offset: 10 },
     ];
 
     let maxOffset = -1;
@@ -195,7 +165,7 @@ export default class MonitorScreen {
       const offset = layer.offset * LAYER_DEPTH_SCALE;
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(this.size.w, this.size.h),
-        layer.material ?? new THREE.MeshBasicMaterial({
+        new THREE.MeshBasicMaterial({
           map: layer.texture, blending: layer.blending, side: THREE.DoubleSide,
           opacity: layer.opacity, transparent: true,
         }),
@@ -252,8 +222,5 @@ export default class MonitorScreen {
     const near = 1 / (distance / 10000);
     (this.dimmer.material as THREE.MeshBasicMaterial).opacity =
       (1 - near) * DIM_FACTOR + (1 - dot) * DIM_FACTOR;
-
-    // Shot mode freezes the noise so screenshots are repeatable.
-    this.noise.uniforms.uTime.value = SHOT ? 0 : performance.now() / 1000;
   }
 }
