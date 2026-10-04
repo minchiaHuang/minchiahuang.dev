@@ -34,7 +34,7 @@ TAKE="$WORK/apple-keyboard-2002.mp3"
 if [[ ! -s "$TAKE" ]]; then curl -fsSL --retry 5 -o "$TAKE" https://cdn.freesound.org/previews/676/676417_4949349-hq.mp3; fi
 echo "c5468bc7085b95fdac5cba402659c353eee4164731e80cc99ad6e207aecbf1df  $TAKE" | shasum -a 256 -c - >/dev/null \
   || { echo "checksum mismatch: apple-keyboard-2002.mp3" >&2; exit 1; }
-# tap <n> <start s> <gain dB>: 0.28 s of the take, faded at both ends, levelled to about -25 dB mean
+# tap <n> <start s> <gain dB>: 0.28 s of the take, faded at both ends, levelled to about -22 dB mean
 tap() {
   ffmpeg -loglevel error -y -ss "$2" -t 0.28 -i "$TAKE" -af "afade=t=in:d=0.003,afade=t=out:st=0.2:d=0.08,volume=$3dB" \
     -ac 1 -ar 44100 -b:a 96k -map_metadata -1 -fflags +bitexact "$OUT/keyboard/key_$1.mp3"
