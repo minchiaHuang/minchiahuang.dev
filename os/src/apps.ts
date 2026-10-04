@@ -1,26 +1,53 @@
-import type { IconName } from './icons';
-
-export type AppId = 'showcase' | 'oregon' | 'doom' | 'scrabble' | 'fiveletters' | 'credits';
+export type AppId =
+  | 'showcase'
+  | 'projects'
+  | 'resume'
+  | 'contact'
+  | 'games'
+  | 'fiveletters'
+  | 'terminal'
+  | 'harddisk'
+  | 'oregon'
+  | 'doom'
+  | 'scrabble'
+  | 'credits';
 
 export interface AppInfo {
   id: AppId;
-  label: string; // desktop icon label (\n forces a line break)
-  title: string; // taskbar button text
-  icon: IconName;
-  iconY: number; // icon image top, px
+  name: string; // Dock label and menu-bar app name
+  icon?: string; // file in public/aqua/; only Dock apps and desktop items need one
   windowTitle: string;
-  status: string;
-  titleColor?: string; // overrides the active title bar colour (Scrabble is dark red)
 }
 
-// Desktop icon order, top to bottom.
+export const aqua = (file: string) => `${import.meta.env.BASE_URL}aqua/${file}`;
+
 export const APPS: AppInfo[] = [
-  { id: 'showcase', label: 'My Showcase', title: 'My Showcase', icon: 'showcase', iconY: 17, windowTitle: 'Min-Chia (Tommy) Huang - Showcase', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
-  { id: 'oregon', label: 'The Oregon\nTrail', title: 'The Oregon Trail', icon: 'oregon', iconY: 119, windowTitle: 'The Oregon Trail', status: 'Powered by JSDOS & DOSBox' },
-  { id: 'doom', label: 'Doom', title: 'Doom', icon: 'doom', iconY: 226, windowTitle: 'Doom', status: 'Powered by JSDOS & DOSBox' },
-  { id: 'scrabble', label: 'Scrabble', title: 'Scrabble', icon: 'scrabble', iconY: 328, windowTitle: 'Scrabble', status: 'Powered by JSDOS & DOSBox', titleColor: '#8a0f14' },
-  { id: 'fiveletters', label: 'Five Letters', title: 'Five Letters', icon: 'fiveletters', iconY: 432, windowTitle: 'Five Letters', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
-  { id: 'credits', label: 'Credits', title: 'Credits', icon: 'credits', iconY: 536, windowTitle: 'Credits', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
+  { id: 'showcase', name: 'Showcase', icon: 'finder.png', windowTitle: 'Min-Chia (Tommy) Huang - Showcase' },
+  { id: 'projects', name: 'Projects', icon: 'folder.png', windowTitle: 'Projects' },
+  { id: 'resume', name: 'Résumé', icon: 'preview.png', windowTitle: 'MinChia-Tommy-Huang-Resume.pdf' },
+  { id: 'contact', name: 'Contact', icon: 'mail.png', windowTitle: 'Contact' },
+  { id: 'games', name: 'Games', icon: 'chess.png', windowTitle: 'Games' },
+  { id: 'fiveletters', name: 'Five Letters', icon: 'textedit.png', windowTitle: 'Five Letters' },
+  { id: 'terminal', name: 'Terminal', icon: 'terminal.png', windowTitle: 'Terminal — tommy@imac' },
+  { id: 'harddisk', name: 'Tommy HD', icon: 'harddisk.png', windowTitle: 'Tommy HD' },
+  { id: 'oregon', name: 'The Oregon Trail', windowTitle: 'The Oregon Trail' },
+  { id: 'doom', name: 'Doom', windowTitle: 'Doom' },
+  { id: 'scrabble', name: 'Scrabble', windowTitle: 'Scrabble' },
+  { id: 'credits', name: 'About This Site', windowTitle: 'About This Site' },
 ];
+
+// Dock order, left to right; the Trash sits after a divider and is not an app.
+export const DOCK: AppId[] = ['showcase', 'projects', 'resume', 'contact', 'games', 'fiveletters', 'terminal'];
+
+// DOS games live in the Games folder, not in the Dock.
+export const GAMES: { id: AppId; logo: string }[] = [
+  { id: 'oregon', logo: 'logo-oregon-trail-deluxe.png' },
+  { id: 'doom', logo: 'logo-doom-1993.png' },
+  { id: 'scrabble', logo: 'logo-scrabble-classic.png' },
+];
+
+// The Dock entry that lights up for a window: a game window belongs to Games.
+export const dockOwner = (id: AppId): AppId | null =>
+  DOCK.includes(id) ? id : GAMES.some((g) => g.id === id) ? 'games' : null;
 
 export const appById = (id: AppId) => APPS.find((a) => a.id === id)!;

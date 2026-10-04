@@ -33,12 +33,41 @@ test('ScreenAnchor survives with its position and size', async () => {
   const anchor = doc.getRoot().listNodes().find((n) => n.getName() === 'ScreenAnchor');
   assert.ok(anchor, 'ScreenAnchor node missing');
   const [x, y, z] = anchor.getTranslation();
-  assert.ok(Math.abs(x) < 1e-3 && Math.abs(y - 1.056) < 1e-3 && Math.abs(z - 0.283) < 1e-3, `at ${x},${y},${z}`);
+  assert.ok(Math.abs(x) < 1e-3 && Math.abs(y - 0.4946) < 1e-3 && Math.abs(z - 0.0953) < 1e-3, `at ${x},${y},${z}`);
   const extras = anchor.getExtras();
-  assert.ok(Math.abs(extras.width - 1.42) < 1e-3 && Math.abs(extras.height - 1.14) < 1e-3);
+  assert.ok(Math.abs(extras.width - 1.0518) < 1e-3 && Math.abs(extras.height - 0.7888) < 1e-3);
+  // the CRT is 4:3: the OS iframe laid over it is 1024 x 768
+  assert.ok(Math.abs(extras.width / extras.height - 4 / 3) < 1e-6, `aspect ${extras.width / extras.height}`);
 });
 
 test('the Screen mesh survives', async () => {
   const doc = await readComputer();
   assert.ok(doc.getRoot().listNodes().some((n) => n.getName() === 'Screen'));
+});
+
+// The translucent shell is not baked: it ships as its own GLB with a material the app renders live.
+test('shell.glb holds one alpha-blended Bondi material', async () => {
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+  const doc = await io.read('blender/out/v2/shell.glb');
+  const materials = doc.getRoot().listMaterials();
+  assert.equal(materials.length, 1);
+  const m = materials[0];
+  assert.equal(m.getAlphaMode(), 'BLEND');
+  const [r, g, b, a] = m.getBaseColorFactor();
+  assert.ok(a > 0 && a < 1, `alpha ${a}`);
+  assert.ok(b > g && g > r, `not Bondi blue: ${r},${g},${b}`);
+});
+
+// The app gives the shell a live material built from these glTF values (app/src/ShellModel.ts),
+// so compression must keep them, and the file must ship next to the baked groups.
+test('shell.glb is compressed into the build with its blended clearcoat material', async () => {
+  assert.ok(statSync(join(out, 'shell.glb')).size < statSync('blender/out/v2/shell.glb').size, 'shell.glb');
+  await MeshoptDecoder.ready;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.read(join(out, 'shell.glb'));
+  assert.equal(doc.getRoot().listMeshes().length, 1);
+  const [m] = doc.getRoot().listMaterials();
+  assert.equal(m.getAlphaMode(), 'BLEND');
+  assert.ok(m.getExtension('KHR_materials_clearcoat'), 'clearcoat dropped');
+  assert.ok(doc.getRoot().listExtensionsUsed().some((e) => e.extensionName === 'EXT_meshopt_compression'));
 });

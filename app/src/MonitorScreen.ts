@@ -1,17 +1,18 @@
 import * as THREE from 'three';
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { SHOT } from './shot';
+import { SCREEN_PX as SCREEN, DEFAULT_ANCHOR, DEFAULT_SIZE } from './screenGeometry';
 
-// Monitor size in CSS pixels.
-const SCREEN = { w: 1280, h: 1024 };
-const PADDING = 32;
-// Pointer coordinates are scaled by rect / (screen - padding), i.e. 1248 x 992.
-const CONTENT = { w: SCREEN.w - PADDING, h: SCREEN.h - PADDING };
+// No inset: the ScreenAnchor size is exactly the visible glass, and the OS is laid out for the
+// full 1024x768. (The old CRT used 32 px to keep content off its curved edge.)
+const PADDING = 0;
 
-const DEFAULT_POSITION = new THREE.Vector3(0, 950, 255);
-const DEFAULT_ROTATION = new THREE.Euler(-3 * THREE.MathUtils.DEG2RAD, 0, 0);
+const DEFAULT_POSITION = new THREE.Vector3(DEFAULT_ANCHOR.x, DEFAULT_ANCHOR.y, DEFAULT_ANCHOR.z);
+const DEFAULT_ROTATION = new THREE.Euler(0, 0, 0);
 
-const LAYER_DEPTH_SCALE = 4;
+// Layer offsets in app units per step. The bezel front sits only ~51 units in front of the glass,
+// so the outermost layer (24 steps) has to stay inside it or the side panels poke out as a box.
+const LAYER_DEPTH_SCALE = 1.5;
 const DIM_FACTOR = 0.7;
 
 type OsMessage =
@@ -34,11 +35,11 @@ const NOISE_FRAGMENT = /* glsl */ `
   varying vec2 vUv;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
   void main() {
-    // 320x256 grain cells that change 24 times a second
-    vec2 cell = floor(vUv * vec2(320.0, 256.0));
+    // 256x192 grain cells (4 CSS px each) that change 24 times a second
+    vec2 cell = floor(vUv * vec2(256.0, 192.0));
     float grain = hash(cell + floor(uTime * 24.0));
-    // 256 scanlines with a slow roll
-    float scan = 0.5 + 0.5 * sin((vUv.y + uTime * 0.02) * 256.0 * 6.2831853);
+    // 192 scanlines with a slow roll
+    float scan = 0.5 + 0.5 * sin((vUv.y + uTime * 0.02) * 192.0 * 6.2831853);
     float v = grain * 0.6 + scan * 0.4;
     gl_FragColor = vec4(vec3(v), uOpacity);
   }
@@ -54,6 +55,8 @@ export default class MonitorScreen {
   // Screen-local +z (the glass normal) in world space; layers are offset along it, not along world z.
   private quaternion: THREE.Quaternion;
   private normal: THREE.Vector3;
+  // Visible glass in app units. The iframe is SCREEN css px, scaled down to this.
+  private size: { w: number; h: number };
   private iframe!: HTMLIFrameElement;
   private dimmer!: THREE.Mesh;
   private noise!: THREE.ShaderMaterial;
@@ -66,10 +69,11 @@ export default class MonitorScreen {
     private camera: THREE.PerspectiveCamera,
     smudge: THREE.Texture,
     shadow: THREE.Texture,
-    placement?: { position: THREE.Vector3; quaternion: THREE.Quaternion },
+    placement?: { position: THREE.Vector3; quaternion: THREE.Quaternion; size?: { w: number; h: number } },
   ) {
     // The bake exports a ScreenAnchor node; the constants only apply when it is missing.
     this.position = placement?.position ?? DEFAULT_POSITION.clone();
+    this.size = placement?.size ?? { ...DEFAULT_SIZE };
     this.rotation = placement ? new THREE.Euler().setFromQuaternion(placement.quaternion) : DEFAULT_ROTATION.clone();
     this.quaternion = new THREE.Quaternion().setFromEuler(this.rotation);
     this.normal = new THREE.Vector3(0, 0, 1).applyQuaternion(this.quaternion);
@@ -103,9 +107,10 @@ export default class MonitorScreen {
     const evt: InComputerEvent = new CustomEvent(msg.type, { bubbles: true, cancelable: false });
     evt.inComputer = true;
     if (msg.type === 'mousemove') {
+      // The rect is the projected iframe (CSS3D scale and perspective included); approximate off-axis.
       const { top, left, width, height } = this.iframe.getBoundingClientRect();
-      evt.clientX = Math.round(msg.clientX * (width / CONTENT.w) + left);
-      evt.clientY = Math.round(msg.clientY * (height / CONTENT.h) + top);
+      evt.clientX = Math.round((msg.clientX + PADDING) * (width / SCREEN.w) + left);
+      evt.clientY = Math.round((msg.clientY + PADDING) * (height / SCREEN.h) + top);
     } else if (msg.type === 'keydown' || msg.type === 'keyup') {
       evt.key = msg.key;
     }
@@ -138,17 +143,20 @@ export default class MonitorScreen {
     const object = new CSS3DObject(container);
     object.position.copy(this.position);
     object.rotation.copy(this.rotation);
+    // One CSS px is one app unit at scale 1; shrink the 1024x768 iframe onto the glass.
+    object.scale.set(this.size.w / SCREEN.w, this.size.h / SCREEN.h, 1);
     this.cssScene.add(object);
 
     // Occluder: alpha 0 + NoBlending overwrites the canvas pixels with transparent ones where the
     // plane is the nearest surface, so the CSS layer underneath shows through, and the room hides it
-    // anywhere something is in front.
-    const material = new THREE.MeshLambertMaterial();
+    // anywhere something is in front. Unlit black: the canvas is premultiplied, so a lit colour
+    // (the shell's lights reach any lit material) with alpha 0 would add a grey wash over the OS.
+    const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
     material.side = THREE.DoubleSide;
     material.opacity = 0;
     material.transparent = true;
     material.blending = THREE.NoBlending;
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(SCREEN.w, SCREEN.h), material);
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(this.size.w, this.size.h), material);
     // The baked GLB has its own opaque Screen mesh on this exact plane; coplanar, the two z-fight per
     // triangle and half the quad (the diagonal) stays opaque. One unit (~1 mm) in front wins cleanly.
     plane.position.copy(object.position).add(this.toWorld(new THREE.Vector3(0, 0, 1)));
@@ -186,7 +194,7 @@ export default class MonitorScreen {
     for (const layer of layers) {
       const offset = layer.offset * LAYER_DEPTH_SCALE;
       const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(SCREEN.w, SCREEN.h),
+        new THREE.PlaneGeometry(this.size.w, this.size.h),
         layer.material ?? new THREE.MeshBasicMaterial({
           map: layer.texture, blending: layer.blending, side: THREE.DoubleSide,
           opacity: layer.opacity, transparent: true,
@@ -204,11 +212,12 @@ export default class MonitorScreen {
   private createSides(maxOffset: number) {
     const d = (x: number, y: number) => new THREE.Vector3(x, y, maxOffset / 2);
     const quarter = Math.PI / 2;
+    const { w, h } = this.size;
     const sides = [
-      { size: [maxOffset, SCREEN.h], at: d(-SCREEN.w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
-      { size: [maxOffset, SCREEN.h], at: d(SCREEN.w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
-      { size: [SCREEN.w, maxOffset], at: d(0, SCREEN.h / 2), rot: new THREE.Euler(quarter, 0, 0) },
-      { size: [SCREEN.w, maxOffset], at: d(0, -SCREEN.h / 2), rot: new THREE.Euler(quarter, 0, 0) },
+      { size: [maxOffset, h], at: d(-w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
+      { size: [maxOffset, h], at: d(w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
+      { size: [w, maxOffset], at: d(0, h / 2), rot: new THREE.Euler(quarter, 0, 0) },
+      { size: [w, maxOffset], at: d(0, -h / 2), rot: new THREE.Euler(quarter, 0, 0) },
     ];
     for (const s of sides) {
       const mesh = new THREE.Mesh(
@@ -223,7 +232,7 @@ export default class MonitorScreen {
 
   private createDimmer(maxOffset: number) {
     this.dimmer = new THREE.Mesh(
-      new THREE.PlaneGeometry(SCREEN.w, SCREEN.h),
+      new THREE.PlaneGeometry(this.size.w, this.size.h),
       new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide, color: 0x000000, transparent: true, blending: THREE.AdditiveBlending,
       }),

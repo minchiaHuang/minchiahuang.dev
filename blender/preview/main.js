@@ -38,6 +38,15 @@ for (const [glb, jpg, channel] of models) {
     o.material = new THREE.MeshBasicMaterial({ map: lightmap })
   })
 }
+// The translucent shell is not baked (blender/scene_v2.py): it keeps its glTF material, so it
+// needs real lights. They touch nothing else, since the baked meshes are unlit.
+scene.add(new THREE.HemisphereLight(0xdde6ff, 0x202428, 1.5))
+const key = new THREE.DirectionalLight(0xffe2c0, 2)
+key.position.set(0, 3, 0.5)
+scene.add(key)
+const shell = await new GLTFLoader().loadAsync('/v2/shell.glb')
+scene.add(shell.scene)
+
 function apply() {
   renderer.render(scene, camera)
 }
