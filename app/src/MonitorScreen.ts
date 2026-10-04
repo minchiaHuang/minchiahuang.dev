@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { SHOT } from './shot';
 
-// docs/spec/contract.md section 1.
+// Monitor size in CSS pixels.
 const SCREEN = { w: 1280, h: 1024 };
 const PADDING = 32;
-// The reference scales pointer coordinates by rect / (screen - padding), i.e. 1248 x 992.
+// Pointer coordinates are scaled by rect / (screen - padding), i.e. 1248 x 992.
 const CONTENT = { w: SCREEN.w - PADDING, h: SCREEN.h - PADDING };
 
 const POSITION = new THREE.Vector3(0, 950, 255);
@@ -23,6 +23,27 @@ type OsMessage =
 
 type InComputerEvent = Event & { inComputer?: boolean; clientX?: number; clientY?: number; key?: string };
 
+// CRT noise and scanlines, drawn by a shader, so no clip has to be downloaded or looped.
+const NOISE_VERTEX = /* glsl */ `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+`;
+const NOISE_FRAGMENT = /* glsl */ `
+  uniform float uTime;
+  uniform float uOpacity;
+  varying vec2 vUv;
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+  void main() {
+    // 320x256 grain cells that change 24 times a second
+    vec2 cell = floor(vUv * vec2(320.0, 256.0));
+    float grain = hash(cell + floor(uTime * 24.0));
+    // 256 scanlines with a slow roll
+    float scan = 0.5 + 0.5 * sin((vUv.y + uTime * 0.02) * 256.0 * 6.2831853);
+    float v = grain * 0.6 + scan * 0.4;
+    gl_FragColor = vec4(vec3(v), uOpacity);
+  }
+`;
+
 /**
  * The monitor: a real iframe placed in 3D with CSS3D, a GL plane that punches a hole in the canvas
  * so the room can hide it, glass layers in front of it, a side box, and a distance/angle dimmer.
@@ -30,7 +51,7 @@ type InComputerEvent = Event & { inComputer?: boolean; clientX?: number; clientY
 export default class MonitorScreen {
   private iframe!: HTMLIFrameElement;
   private dimmer!: THREE.Mesh;
-  private videoTextures: THREE.VideoTexture[] = [];
+  private noise!: THREE.ShaderMaterial;
   private inComputer = false;
   private prevInComputer = false;
 
@@ -123,38 +144,23 @@ export default class MonitorScreen {
 
   // ---- glass layers ------------------------------------------------------
 
-  private video(file: string): THREE.VideoTexture {
-    const video = document.createElement('video');
-    video.muted = true;
-    video.loop = !SHOT;
-    video.autoplay = !SHOT;
-    video.playsInline = true;
-    video.preload = 'auto';
-    video.src = import.meta.env.BASE_URL + 'textures/monitor/video/' + file;
-    video.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none';
-    document.body.appendChild(video);
-    if (SHOT) {
-      // Deterministic: stay on frame 0, however the browser tries to start playback.
-      const freeze = () => { video.pause(); video.currentTime = 0; };
-      freeze();
-      video.addEventListener('loadeddata', freeze);
-      video.addEventListener('play', freeze);
-    }
-    // The reference leaves video textures untagged (linear), so its sRGB output stage brightens them.
-    return new THREE.VideoTexture(video);
-  }
-
   private createLayers(smudge: THREE.Texture, shadow: THREE.Texture): number {
     smudge.colorSpace = THREE.SRGBColorSpace;
     shadow.colorSpace = THREE.SRGBColorSpace;
-    this.videoTextures = [this.video('base-static.mp4'), this.video('static-texture-layer.mp4')];
+    this.noise = new THREE.ShaderMaterial({
+      vertexShader: NOISE_VERTEX, fragmentShader: NOISE_FRAGMENT,
+      uniforms: { uTime: { value: 0 }, uOpacity: { value: 0.18 } },
+      transparent: true, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false,
+    });
 
-    // Same order as the reference (this decides draw order among equal depths).
-    const layers = [
+    // Layer order decides draw order among equal depths.
+    type Layer = {
+      texture?: THREE.Texture; material?: THREE.Material; blending?: THREE.Blending; opacity?: number; offset: number;
+    };
+    const layers: Layer[] = [
       { texture: smudge, blending: THREE.AdditiveBlending, opacity: 0.12, offset: 24 },
       { texture: shadow, blending: THREE.NormalBlending, opacity: 1, offset: 5 },
-      { texture: this.videoTextures[0], blending: THREE.AdditiveBlending, opacity: 0.5, offset: 10 },
-      { texture: this.videoTextures[1], blending: THREE.AdditiveBlending, opacity: 0.1, offset: 15 },
+      { material: this.noise, offset: 10 },
     ];
 
     let maxOffset = -1;
@@ -162,7 +168,7 @@ export default class MonitorScreen {
       const offset = layer.offset * LAYER_DEPTH_SCALE;
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(SCREEN.w, SCREEN.h),
-        new THREE.MeshBasicMaterial({
+        layer.material ?? new THREE.MeshBasicMaterial({
           map: layer.texture, blending: layer.blending, side: THREE.DoubleSide,
           opacity: layer.opacity, transparent: true,
         }),
@@ -219,7 +225,7 @@ export default class MonitorScreen {
     (this.dimmer.material as THREE.MeshBasicMaterial).opacity =
       (1 - near) * DIM_FACTOR + (1 - dot) * DIM_FACTOR;
 
-    // A paused video never reports a new frame, so push frame 0 to the GPU ourselves.
-    if (SHOT) for (const t of this.videoTextures) t.needsUpdate = true;
+    // Shot mode freezes the noise so screenshots are repeatable.
+    this.noise.uniforms.uTime.value = SHOT ? 0 : performance.now() / 1000;
   }
 }
