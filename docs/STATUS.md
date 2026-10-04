@@ -1,10 +1,11 @@
 # STATUS
 
-**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e）；之後是內容改寫。
+**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e），上線後的畫面問題已修（PR #27–#33，main b8e5a76）；之後是內容改寫。
 
-**最後驗證**：2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
+**最後驗證**：2026-10-05 AEDT，main b8e5a76（PR #33）合併前 `bash bin/verify.sh` 綠（9 pass）；正式站用真 GPU（headless Chrome `--use-angle=metal`）截 idle / desk / monitor / freecam 正常，罐子與螢幕不再閃。再之前 2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
 
 ## 已完成（2026-10-04）
+- 上線後畫面修正（2026-10-04～05）：PR #27 拿掉螢幕玻璃上的 CRT 雜訊與邊緣陰影；PR #28 拿掉污漬層與側板；PR #29 `app/public/_headers` 讓 `/models/*` 每次重新驗證（舊光照圖配新模型造成房間顏色壞掉）；PR #30 拿掉整個視窗的底片顆粒 overlay（`Renderers.ts`）；PR #31 鏡頭變慢（進螢幕 3200 ms、出螢幕 1600 ms、遠景↔桌面 1400 ms；時間與 henryheffernan.com 原本相同，但 iMac 螢幕較小、放大倍數 4.7x 對 2.6x）；PR #32 隱藏烘焙的 `Screen` mesh（遠景與遮擋平面 z-fighting 成黑色條紋）；PR #33 相機 near 10 → 300（罐子標籤 0.5 mm 的貼面在遠景 z-fighting）。
 - iMac G3 改版（整合分支 `feat/imac-redesign`，agent flow 三個 worker）：PR #23 Blender 場景重建（四人長桌、iMac G3＋鍵盤冰球滑鼠，半透明殼另出 `shell.glb` 不烘焙）；PR #22 OS 改 Mac OS X 10.0 Aqua（選單列、Dock、Projects/Résumé/Contact/Terminal/Games/Tommy HD，4:3 1024x768，Apple 原廠圖示與遊戲原廠 logo 進 git，使用者 2026-10-04 同意的授權例外，記在 CREDITS.md）；PR #24 app 整合（shell 即時 MeshPhysicalMaterial、iframe 1024x768、鏡頭重調、咖啡蒸氣與音效位置）。設計稿在 Figma eDceUbam5oYe1EmYsYF8FS 頁「03 OS Skins」（42:519 為定稿）。
 - 2B entry-flow（PR #11 → 8eeb1c8）：入口按鈕、新鏡頭關鍵格、BIOS 文字。
 - 螢幕斜三角修正（PR #13 → b6d9bfd）：玻璃疊層改沿螢幕法線偏移；CSS3D 遮擋平面往前 1 單位，避開烘焙 Screen mesh 的 z-fighting。
@@ -15,7 +16,9 @@
 
 ## 已知問題
 - 改版只在 headless Chrome（SwiftShader）看過：真 GPU 上半透明殼的排序、hover 縮放、滑鼠座標換算、入場動畫都還沒在真瀏覽器確認；Résumé 視窗內嵌 PDF 與 DOS 遊戲啟動也待真瀏覽器確認。
-- 螢幕上的雜訊與污漬層強度沿用舊 CRT，近看 OS 文字略糊，可再調淡。
+- 正式網域 `/models/*.webp` 仍回 `max-age=14400`：Cloudflare 網域的 Browser Cache TTL（4 小時）蓋過 `_headers`（pages.dev 已是 `max-age=0`）。要在 Cloudflare 後台 Caching → Browser Cache TTL 改成 Respect Existing Headers（使用者操作）。
+- OS 的 Credits 視窗還寫「Monitor glass & noise」，雜訊層已拿掉；`app/public/textures/monitor/shadow.png`、`smudges.png` 已無程式使用（是否刪除待使用者決定）。
+- iframe 仍有 `jitter` CSS 動畫（`app/src/style.css:150`，每 0.3 秒次像素抖動）；測過不會產生顆粒，是否拿掉待使用者決定。
 - `blender/preview/main.js` 的 VIEWS 還是舊鏡頭數字（註解說要和 Camera.ts 一致）。
 - 遠端分支 `chore/os-aqua-screenshots` 只放 PR #22 截圖，可由使用者刪除。
 - og.jpg 左下角帶到頁面上的兩個入口按鈕（小瑕疵；現在只剩一個按鈕，重拍 og.jpg 時一起處理）。
