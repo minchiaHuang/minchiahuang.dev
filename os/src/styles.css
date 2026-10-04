@@ -274,8 +274,8 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 .finder-item { width: 112px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .finder-icon { width: 64px; height: 64px; padding: 2px; border-radius: 4px; }
 .finder-name { padding: 0 6px; border-radius: 8px; font-size: 13px; line-height: 17px; text-align: center; }
-.finder-item.is-selected .finder-icon, .finder-item.is-selected .finder-sub { margin-top: -4px; font-size: 11px; line-height: 14px; color: #808080; text-align: center; }
-.finder-logo { background: rgba(0, 0, 0, 0.12); }
+.finder-item.is-selected .finder-icon, .finder-item.is-selected .finder-logo { background: rgba(0, 0, 0, 0.12); }
+.finder-sub { margin-top: -4px; font-size: 11px; line-height: 14px; color: #808080; text-align: center; }
 .finder-item.is-selected .finder-name { background: var(--select); color: #fff; }
 .finder-logo { width: 108px; height: 84px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .finder-logo img { max-width: 104px; max-height: 80px; }
