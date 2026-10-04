@@ -13,7 +13,8 @@ mkdir -p "$DEST"
 
 fetch() { # fetch <name> <url>
     if [[ -s "$DEST/$1" ]]; then echo "skip  $1 (present)"; return; fi
-    curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$DEST/$1.part" "$2" && mv "$DEST/$1.part" "$DEST/$1"
+    curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$DEST/$1.part" "$2"
+    mv "$DEST/$1.part" "$DEST/$1"
     echo "fetch $1"
 }
 
@@ -30,6 +31,9 @@ else
     unzip -q "$WORK/scrabble.zip" -d "$WORK/game"
     mkdir "$WORK/game/.jsdos"
     printf '[autoexec]\nmount c .\nc:\nTSP.EXE\n' > "$WORK/game/.jsdos/dosbox.conf"
-    (cd "$WORK/game" && zip -qr "$DEST/scrabble.jsdos.part" . -x '.DS_Store') && mv "$DEST/scrabble.jsdos.part" "$DEST/scrabble.jsdos"
+    # The Pages build image has no zip; python3's zipfile CLI writes the same archive.
+    find "$WORK/game" -name .DS_Store -delete
+    (cd "$WORK/game" && python3 -m zipfile -c "$DEST/scrabble.jsdos.part" .jsdos *)
+    mv "$DEST/scrabble.jsdos.part" "$DEST/scrabble.jsdos"
     echo "build scrabble.jsdos"
 fi
