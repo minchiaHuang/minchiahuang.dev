@@ -151,7 +151,7 @@ def transform(objs, matrix):
 
 
 def plane(name, size, loc, rot, material, group):
-    """One-sided quad for the room shell (see bake.py: a closed box bakes its unseen sides)."""
+    """One-sided quad for the room shell (a closed box would bake its unseen sides)."""
     bm = bmesh.new()
     bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=0.5)
     bmesh.ops.scale(bm, vec=Vector((size[0], size[1], 1)), verts=bm.verts)
@@ -465,7 +465,7 @@ for i, hex_color in enumerate(("#f2c14e", "#f08a4b", "#d1495b", "#6b3f6e")):
         mat(f"PosterBand{i}", hex_color, 0.8), "decor", bottom=True)
 
 # ---------------------------------------------------------------- lights
-# Lights are in app units (about 3.8x metres), so the bake.py wattages scale by about 3.8^2.
+# Lights are in app units (about 3.8x metres), so the wattages scale by about 3.8^2.
 add_light("Window", "AREA", (5.7, -2.6, 1.8), 1300, (1.0, 0.9, 0.78), size=3.5, rot=(0, math.pi / 2, 0))
 
 
@@ -541,7 +541,7 @@ for g, obj in joined.items():
     bpy.context.view_layer.objects.active = obj
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    # same recipe as bake.py: smart project, equal texel density, a margin wider than the bake margin
+    # smart project, equal texel density, a margin wider than the bake margin
     bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.006)
     bpy.ops.uv.average_islands_scale()
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -559,10 +559,57 @@ for g, obj in joined.items():
     bpy.ops.object.mode_set(mode="OBJECT")
     print("GROUP", g, "faces", len(mesh.polygons), "removed resting faces", len(hidden))
 
+def denoise(img):
+    """Run a baked float image through the compositor's Denoise node (OpenImageDenoise).
+
+    Cycles' own denoiser only works on renders, not bakes. The compositor reads the image
+    directly, and the render engine is switched to Workbench for this pass so the scene itself
+    is not path traced again. Returns the denoised pixels as a new float image.
+    """
+    if hasattr(scene, "compositing_node_group"):  # Blender 5.x
+        tree = bpy.data.node_groups.new("DenoiseBake", "CompositorNodeTree")
+        scene.compositing_node_group = tree
+        tree.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        out = tree.nodes.new("NodeGroupOutput")
+        out_socket = out.inputs[0]
+    else:  # Blender 4.x
+        scene.use_nodes = True
+        tree = scene.node_tree
+        tree.nodes.clear()
+        out = tree.nodes.new("CompositorNodeComposite")
+        out_socket = out.inputs["Image"]
+    src = tree.nodes.new("CompositorNodeImage")
+    src.image = img
+    dn = tree.nodes.new("CompositorNodeDenoise")
+    if "HDR" in dn.inputs:  # Blender 5.x moved the flag from a property to a socket
+        dn.inputs["HDR"].default_value = True
+    else:
+        dn.use_hdr = True
+    tree.links.new(src.outputs["Image"], dn.inputs["Image"])
+    tree.links.new(dn.outputs["Image"], out_socket)
+
+    engine = scene.render.engine
+    scene.render.engine = "BLENDER_WORKBENCH"
+    scene.render.resolution_x = scene.render.resolution_y = img.size[0]
+    scene.render.resolution_percentage = 100
+    scene.render.use_compositing = True
+    bpy.ops.render.render()
+    scene.render.engine = engine
+
+    result = bpy.data.images["Render Result"]
+    tmp = os.path.join(ROOT, "blender", "cache", f"{img.name}_denoised.exr")
+    os.makedirs(os.path.dirname(tmp), exist_ok=True)
+    scene.render.image_settings.file_format = "OPEN_EXR"
+    result.save_render(tmp, scene=scene)
+    clean = bpy.data.images.load(tmp)
+    clean.name = f"{img.name}_denoised"
+    return clean
+
+
 # ---------------------------------------------------------------- bake all three in one pass
 images = {}
 for g, obj in joined.items():
-    # float buffer: an 8-bit image would clamp the bake at 1.0 (see the bake.py notes)
+    # float buffer: an 8-bit image would clamp the bake at 1.0
     images[g] = img = bpy.data.images.new(g, SIZE, SIZE, alpha=False, float_buffer=True)
     for m in obj.data.materials:
         m.use_nodes = True
@@ -589,6 +636,9 @@ bpy.context.view_layer.objects.active = joined["computer"]
 print("BAKE start", SIZE, SAMPLES)
 bpy.ops.object.bake(type="COMBINED")
 print("BAKE done")
+if os.environ.get("BAKE_DENOISE", "1") == "1":
+    images = {g: denoise(img) for g, img in images.items()}
+    print("DENOISE done")
 
 scene.view_settings.view_transform = "Standard"
 scene.view_settings.look = "None"
