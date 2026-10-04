@@ -5,7 +5,9 @@
   "description": "Min-Chia (Tommy) Huang's interactive portfolio.",
   "scripts": {
     "verify": "bash bin/verify.sh",
-    "test": "node --test"
+    "test": "node --test",
+    "compress": "node tools/compress.mjs",
+    "build": "npm ci --prefix os && npm ci --prefix app && npm run build --prefix os && npm run compress && npm run build --prefix app"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.1",

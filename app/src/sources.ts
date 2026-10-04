@@ -8,12 +8,12 @@ export interface Source {
 
 // Every file the outer scene loads, in the order the BIOS screen lists them.
 const sources: Source[] = [
-  { name: 'computerSetupModel', type: 'gltfModel', path: 'models/Computer/computer_setup.glb' },
-  { name: 'computerSetupTexture', type: 'texture', path: 'models/Computer/baked_computer.jpg' },
-  { name: 'environmentModel', type: 'gltfModel', path: 'models/World/environment.glb' },
-  { name: 'environmentTexture', type: 'texture', path: 'models/World/baked_environment.jpg' },
-  { name: 'decorModel', type: 'gltfModel', path: 'models/Decor/decor.glb' },
-  { name: 'decorTexture', type: 'texture', path: 'models/Decor/baked_decor_modified.jpg' },
+  { name: 'computerSetupModel', type: 'gltfModel', path: 'models/computer.glb' },
+  { name: 'computerSetupTexture', type: 'texture', path: 'models/computer.webp' },
+  { name: 'environmentModel', type: 'gltfModel', path: 'models/environment.glb' },
+  { name: 'environmentTexture', type: 'texture', path: 'models/environment.webp' },
+  { name: 'decorModel', type: 'gltfModel', path: 'models/decor.glb' },
+  { name: 'decorTexture', type: 'texture', path: 'models/decor.webp' },
   { name: 'monitorSmudgeTexture', type: 'texture', path: 'textures/monitor/smudges.png' },
   { name: 'monitorShadowTexture', type: 'texture', path: 'textures/monitor/shadow.png' },
   { name: 'mouseDown', type: 'audio', path: 'audio/mouse/mouse_down.mp3' },
