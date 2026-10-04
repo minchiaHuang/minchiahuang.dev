@@ -1,8 +1,8 @@
 # STATUS
 
-**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已在整合分支 `feat/imac-redesign` 完成，等使用者確認後合進 main 上線；之後是內容改寫。
+**一句話**：iMac G3 改版（邦迪藍 iMac＋黑客松長桌、Mac OS X Aqua 風格 OS）已上線（2026-10-04，PR #25 → main d04463e）；之後是內容改寫。
 
-**最後驗證**：2026-10-04 AEDT，`feat/imac-redesign` 560fe03 跑 `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
+**最後驗證**：2026-10-04 AEDT，上線後 minchiahuang.dev 與 www、/os/、/models/shell.glb、/os/aqua/finder.png、履歷 PDF 皆 200，未知路徑 404，正式站 desk 截圖正常；合併前 `feat/imac-redesign` `bash bin/verify.sh` 綠（9 pass）。上一次 main：4f8f1a3 跑 `bash bin/verify.sh` 綠（9 pass）；minchiahuang.dev 與 www 跑計畫 4B.2 的 curl 檢查全過。
 
 ## 已完成（2026-10-04）
 - iMac G3 改版（整合分支 `feat/imac-redesign`，agent flow 三個 worker）：PR #23 Blender 場景重建（四人長桌、iMac G3＋鍵盤冰球滑鼠，半透明殼另出 `shell.glb` 不烘焙）；PR #22 OS 改 Mac OS X 10.0 Aqua（選單列、Dock、Projects/Résumé/Contact/Terminal/Games/Tommy HD，4:3 1024x768，Apple 原廠圖示與遊戲原廠 logo 進 git，使用者 2026-10-04 同意的授權例外，記在 CREDITS.md）；PR #24 app 整合（shell 即時 MeshPhysicalMaterial、iframe 1024x768、鏡頭重調、咖啡蒸氣與音效位置）。設計稿在 Figma eDceUbam5oYe1EmYsYF8FS 頁「03 OS Skins」（42:519 為定稿）。
@@ -25,7 +25,7 @@
 - 沒在真 GPU 瀏覽器確認過斜角看螢幕時遮擋平面邊緣（只看過 headless Chrome）。
 
 ## 下一步
-1. 使用者在 Cloudflare Pages 的 `feat/imac-redesign` 預覽網址用真瀏覽器檢查（入場動畫、螢幕點擊、Résumé PDF、DOS 遊戲、半透明殼），沒問題就合併「feat/imac-redesign → main」的 PR 上線。
+1. 使用者在 https://minchiahuang.dev 用真瀏覽器檢查（入場動畫、螢幕點擊、Résumé PDF、DOS 遊戲、半透明殼），有問題再開修正 PR。
 2. 上線後重拍 og.jpg（順便解決左下角入口按鈕的舊瑕疵）。
 3. 內容改寫（Figma 04 Content）：Projects 加 Hackathon 分類，補 Tommy HD 裡的 Hackathons 資料夾。
 4. Phase 3 AI 道具（選做）。
