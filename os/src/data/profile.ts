@@ -13,7 +13,7 @@ export interface Project {
   slug: string; // folder name in Projects and in the Terminal
   name: string;
   meta: string;
-  tag: string; // subtitle on the Showcase index card
+  tag: string; // subtitle on the Showcase index card, stored as displayed (caps, but the 'x' connector stays lowercase)
   hackathon?: boolean; // a tag, not a category: Tommy HD > Hackathons filters Projects by it
   award?: string; // short label under the folder name in Projects
   blurb: string;
@@ -26,7 +26,7 @@ export const PROJECTS: Project[] = [
     slug: 'cookpilot',
     name: 'CookPilot',
     meta: 'iOS | ICON x Lyra Hackathon, 1st place | 2026',
-    tag: '1st place · ICON x Lyra Hackathon',
+    tag: '1ST PLACE · ICON x LYRA HACKATHON',
     hackathon: true,
     award: '1st place',
     blurb:
@@ -38,7 +38,7 @@ export const PROJECTS: Project[] = [
     slug: 'visual-eyes',
     name: 'Visual Eyes',
     meta: 'visionOS | Apple Foundation Program | 2026',
-    tag: 'Apple Foundation Program',
+    tag: 'APPLE FOUNDATION PROGRAM',
     blurb:
       'Asks who you want to become, then builds a five-room walkable museum of that future. A two-stage pipeline produces a structured story and images, composited onto named wall frames in a USDZ gallery. Four-person team, I built the app.',
     image: 've-gallery.jpg',
@@ -51,7 +51,7 @@ export const PROJECTS: Project[] = [
     slug: 'learnguard',
     name: 'LearnGuard',
     meta: 'MCP | OpenAI Codex Hackathon | 2026',
-    tag: 'Hackathon · OpenAI Codex',
+    tag: 'HACKATHON · OPENAI CODEX',
     hackathon: true,
     award: 'Hackathon',
     blurb:
@@ -62,7 +62,7 @@ export const PROJECTS: Project[] = [
     slug: 'vaxagent',
     name: 'VaxAgent',
     meta: 'FastAPI | HSIL Hackathon, Harvard (Sydney) | 2026',
-    tag: 'Hackathon · HSIL Harvard',
+    tag: 'HACKATHON · HSIL HARVARD',
     hackathon: true,
     award: 'Hackathon',
     blurb:
@@ -73,7 +73,7 @@ export const PROJECTS: Project[] = [
     slug: 'datathon-2026',
     name: 'Accenture x SUBAA Datathon 2026',
     meta: 'Python | Finalist, top 4 of 40 teams',
-    tag: 'Top 4 of 40 · Accenture x SUBAA',
+    tag: 'TOP 4 OF 40 · ACCENTURE x SUBAA',
     hackathon: true,
     award: 'Top 4 of 40',
     blurb:
