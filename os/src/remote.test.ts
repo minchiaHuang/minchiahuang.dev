@@ -11,7 +11,7 @@ test('open showcase on a page', () => {
 });
 
 test('unknown or missing page falls back to home', () => {
-  assert.deepEqual(parseOpenMessage({ type: 'open', app: 'showcase', page: 'music' }), { app: 'showcase', page: 'home' });
+  assert.deepEqual(parseOpenMessage({ type: 'open', app: 'showcase', page: 'software' }), { app: 'showcase', page: 'home' });
   assert.deepEqual(parseOpenMessage({ type: 'open', app: 'showcase' }), { app: 'showcase', page: 'home' });
 });
 
