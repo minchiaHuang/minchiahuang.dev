@@ -58,7 +58,7 @@ export default class LoadingScreen {
     this.doneLine.textContent = 'All assets loaded. Starting MH-OS ...';
     body.append(
       p('Scene ........ scripted in Blender (bpy), baked lightmaps'),
-      p('Display ...... CRT 1280x1024, CSS3D'),
+      p('Display ...... CRT 1024x768, CSS3D'),
       p('Memory test .. skipped (it is a website)'),
       el('div', 'spacer'),
       p('Loading assets:'),

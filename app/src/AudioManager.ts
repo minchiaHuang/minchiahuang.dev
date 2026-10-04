@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { readMuted, safeStorage } from './muteState';
 
 const REF_DISTANCE = 10000;
-const MOUSE_AT = new THREE.Vector3(800, -300, 1200);
-const KEYBOARD_AT = new THREE.Vector3(-300, -400, 1200);
+const MOUSE_AT = new THREE.Vector3(860, -420, 990);
+const KEYBOARD_AT = new THREE.Vector3(-50, -380, 1090);
 
 type InComputerEvent = Event & { inComputer?: boolean; key?: string };
 
