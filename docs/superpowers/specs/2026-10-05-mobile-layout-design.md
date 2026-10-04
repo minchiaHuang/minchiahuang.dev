@@ -80,20 +80,20 @@
 ### Résumé
 iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`，改顯示預先轉好的頁面圖：
 - `tools/resume-pages.sh`：用 macOS 內建 `qlmanage`/`sips` 把 `os/public/showcase/MinChia-Tommy-Huang-Resume.pdf`（目前 1 頁）轉成 `os/public/showcase/resume-p1.png`（寬 1240px），並寫 `resume-pages.json`（頁數＋PDF 的 sha256）。不需要新套件。
-  - `qlmanage -t -s N` 的 N 是**長邊**：`-s 1240` 實測只得到 876×1240。A4 直式要用 `-s 1754` 才會是寬 1240；腳本轉完用 `sips -g pixelWidth` 確認寬度。
-  - `qlmanage` 只轉第 1 頁：腳本用 `mdls -name kMDItemNumberOfPages` 讀頁數，> 1 就報錯停下，不默默漏頁。
+  - `qlmanage -t -s N` 的 N 是**長邊**：`-s 1240` 實測只得到 876×1240。A4 直式要用 `-s 1755` 才會是寬 1240（`-s 1754` 實測 1239）；腳本轉完用 `sips -g pixelWidth` 確認寬度。
+  - `qlmanage` 只轉第 1 頁：腳本用 `mdls -name kMDItemNumberOfPages` 讀頁數，> 1 就報錯停下，不默默漏頁。Spotlight 沒索引過的檔案 `mdls` 會回 `(null)`，這時改用 PDFKit 讀頁數。
 - 單元測試：PDF 的 sha256 必須等於 json 裡記的值——換了 PDF 沒重轉就紅。
 - 手機 Résumé：圖片寬度貼齊螢幕、可捲動；上方 Open PDF 按鈕，點圖片也一樣，都是直接開原 PDF（一般導覽），由 Safari 內建的 PDF 檢視器縮放、下載。不做 app 內縮放（使用者 2026-10-05 決定）：iOS 的雙指縮放會放大整頁，TopBar 和 Dock 會跟著跑掉。
 - `CREDITS.md` 不用改：`os/public/showcase/` 那一列已經涵蓋整個資料夾（自己的作品）。
 
 ## 4. Terminal 指令按鈕
 `Terminal` 的 `chips` 為 true 時，在輸入列下方加兩排 Aqua 膠囊按鈕：`help`、`cat about`、`ls`、`cd projects`、`open …`、`resume`、`contact`、`clear`。
-- 點一下：把指令當作輸入送出（走現有 submit 路徑，畫面上看得到 `% help` 這行），`open …` 例外：只填入 `open ` 並 focus 輸入框，叫出鍵盤讓人打專案名。
+- 點一下：把指令當作輸入送出（走現有 submit 路徑，畫面上看得到 `% help` 這行）。按鈕上的字不變，但 `cat about` 和 `cd projects` 實際送出的是 `cat ~/about` 和 `cd ~/projects`，在 `~/projects` 裡按也不會失敗；`terminal.ts` 要補上 `~/about` 這種寫法，`open …` 例外：只填入 `open ` 並 focus 輸入框，叫出鍵盤讓人打專案名。
 - 輸入框字級 ≥ 16px（避免 iOS 自動放大）。
 - 鍵盤彈出時 Dock 隱藏，按鈕列貼在鍵盤上方。
 
 ## 5. 遊戲虛擬按鍵
-**實作前先做 spike**：確認 js-dos 8.5.1 拿得到 `ci`（`simulateKeyPress` / `sendKeyEvent`）。dist 裡有 `onEvent` 和 `ci-ready` 事件，最可能的路是 `Dos(el, { onEvent: (event, ci) => { if (event === 'ci-ready') … } })`，spike 先試這條。拿不到的備案：對 `document` 送合成 `KeyboardEvent`（js-dos 的鍵盤監聽掛在 document 上）。spike 結果決定 `send` 的實作，介面不變：`send(key, pressed)`。
+**實作前先做 spike**：確認 js-dos 8.5.1 拿得到 `ci`（`simulateKeyPress` / `sendKeyEvent`）。dist 裡有 `onEvent` 和 `ci-ready` 事件，最可能的路是 `Dos(el, { onEvent: (event, ci) => { if (event === 'ci-ready') … } })`，spike 先試這條。拿不到的備案：對 `window` 送合成 `KeyboardEvent`（js-dos 的鍵盤監聽掛在 window 上）。spike 結果決定 `send` 的實作，介面不變：`send(key, pressed)`。
 
 `keyLayouts.ts` 每款遊戲一份配置（純資料，可測）：
 
@@ -116,7 +116,7 @@ iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`
 - `os/src/mobile/keyLayouts.test.ts`：每款遊戲配置用到的鍵碼，都要出現在 `os/node_modules/js-dos/dist/js-dos.js` 的 `KBD_*` 表裡（測試直接讀那個檔案解析，不和自己的常數比，免得變成套套邏輯）。
 - Résumé 頁面圖 hash 測試。
 
-`bin/verify.sh` 不改（AGENTS.md 規定）；`tools/flat-check.sh` 的 400px 檢查仍成立（根元素保留 `class="screen"`）。
+`bin/verify.sh` 不改（AGENTS.md 規定）；`tools/flat-check.sh:44` 用 `grep -q 'class="screen"'` 比對，遇到 `class="screen m-shell"` 會失敗，所以 PR 1 要把這行改成直接檢查手機殼（先故意弄紅一次，確認這個檢查真的會擋）。
 
 人工檢查：
 - headless Chrome 在 390×844、360×780、844×390 截圖每個 app，對照 Figma 06 Mobile。
