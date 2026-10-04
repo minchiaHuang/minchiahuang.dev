@@ -1,16 +1,19 @@
-import { APPS, type AppId } from '../apps';
-import { icons } from '../icons';
+import { aqua, type AppId } from '../apps';
+
+// Desktop items, top-right column. Resume.pdf opens in the Résumé (Preview) app.
+export const DESK_ITEMS = [
+  { key: 'hd', label: 'Tommy HD', icon: 'harddisk.png', opens: 'harddisk' as AppId },
+  { key: 'pdf', label: 'Resume.pdf', icon: 'pdf.png', opens: 'resume' as AppId },
+] as const;
+export type DeskKey = (typeof DESK_ITEMS)[number]['key'];
 
 interface Props {
-  selected: AppId | null;
-  opened: AppId | null;
-  shifted: boolean; // the column sits 9px higher once a window has opened, until the next reboot
-  onSelect: (id: AppId | null) => void;
+  selected: DeskKey | null;
+  onSelect: (key: DeskKey | null) => void;
   onOpen: (id: AppId) => void;
 }
 
-export default function Desktop({ selected, opened, shifted, onSelect, onOpen }: Props) {
-  const hit = (id: AppId) => ({ onMouseDown: () => onSelect(id), onDoubleClick: () => onOpen(id) });
+export default function Desktop({ selected, onSelect, onOpen }: Props) {
   return (
     <div
       className="desktop"
@@ -18,23 +21,19 @@ export default function Desktop({ selected, opened, shifted, onSelect, onOpen }:
         if (e.target === e.currentTarget) onSelect(null);
       }}
     >
-      {APPS.map((app) => {
-        const src = icons[app.icon];
-        return (
-          <div key={app.id} className="desk-icon" style={{ top: app.iconY - (shifted ? 9 : 0) }}>
-            <div className={`desk-icon-hit${selected === app.id ? ' is-selected' : ''}`}>
-              <div className="desk-icon-img" {...hit(app.id)}>
-                <img src={src} alt="" draggable={false} />
-                <span className="desk-icon-tint" style={{ maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }} />
-              </div>
-              {/* The 5px gap above the label belongs to the label so the hit area has no hole. */}
-              <div className="desk-icon-label" {...hit(app.id)}>
-                <span className={opened === app.id ? 'is-opened' : undefined}>{app.label}</span>
-              </div>
-            </div>
+      {DESK_ITEMS.map((it) => (
+        <div
+          key={it.key}
+          className={`desk-icon${selected === it.key ? ' is-selected' : ''}`}
+          onMouseDown={() => onSelect(it.key)}
+          onDoubleClick={() => onOpen(it.opens)}
+        >
+          <div className="desk-icon-img">
+            <img src={aqua(it.icon)} alt="" draggable={false} />
           </div>
-        );
-      })}
+          <span className="desk-icon-label">{it.label}</span>
+        </div>
+      ))}
     </div>
   );
 }

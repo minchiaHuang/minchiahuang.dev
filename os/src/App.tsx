@@ -1,21 +1,28 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
-import type { AppId } from './apps';
-import Desktop from './components/Desktop';
-import Taskbar from './components/Taskbar';
-import StartMenu from './components/StartMenu';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import { DOCK, dockOwner, type AppId } from './apps';
+import Desktop, { type DeskKey } from './components/Desktop';
+import MenuBar, { type MenuId } from './components/MenuBar';
+import Dock from './components/Dock';
 import Window from './components/Window';
 import FiveLetters from './components/FiveLetters';
 import Credits from './components/Credits';
 import DosGame from './components/DosGame';
 import Showcase from './components/Showcase';
 import Shutdown from './components/Shutdown';
-import { activeId, initialSystem, pressedId, reduce } from './windows';
+import Games from './components/Games';
+import HardDisk from './components/HardDisk';
+import Projects from './components/Projects';
+import Resume from './components/Resume';
+import Contact from './components/Contact';
+import Terminal from './components/Terminal';
+import { activeId, initialSystem, reduce } from './windows';
 import type { Action } from './windows';
 import { parseOpenMessage, parseOpenQuery } from './remote';
 import type { OpenTarget, ShowcasePage } from './remote';
 
-// Screenshot states for review: ?shot=startmenu | selected | windows | maximized | minimized | shutdown
-// | fiveletters | fiveletters-win | fiveletters-lose | credits | dos-oregon | dos-doom | dos-scrabble.
+// Screenshot states for review: ?shot=tmenu | dock | games | terminal | projects | resume | contact | selected
+// | windows | maximized | minimized | shutdown | fiveletters | fiveletters-win | fiveletters-lose | credits
+// | dos-oregon | dos-doom | dos-scrabble, and sc-<page> (Showcase.tsx).
 const shot = new URLSearchParams(location.search).get('shot');
 
 const initialOpen = (): AppId[] => {
@@ -23,68 +30,50 @@ const initialOpen = (): AppId[] => {
   if (shot?.startsWith('fiveletters')) return ['showcase', 'fiveletters'];
   if (shot === 'credits') return ['showcase', 'credits'];
   if (shot?.startsWith('dos-')) return ['showcase', shot.slice(4) as AppId];
+  if (shot === 'games' || shot === 'tmenu') return ['showcase', 'games'];
+  if (shot === 'terminal' || shot === 'projects' || shot === 'resume' || shot === 'contact') return ['showcase', shot];
   return ['showcase'];
 };
 const shotGuesses = shot === 'fiveletters-win' ? ['TODAY', 'TOMMY'] : shot === 'fiveletters-lose' ? Array(6).fill('CRANE') : shot === 'fiveletters' ? ['CRANE', 'MONEY'] : [];
+const shotTerminal = shot === 'terminal' ? ['help', 'cd projects', 'ls'] : [];
+// The Figma state frame (42:832) has the pointer resting on Games in the Dock.
+const shotDockSlot = shot === 'dock' || shot === 'tmenu' ? DOCK.indexOf('games') : undefined;
 
-interface ContentProps {
-  id: AppId;
-  active: boolean;
-  minimized: boolean;
-  showcasePage: { page: ShowcasePage; n: number } | null;
-}
-
-function Content({ id, active, minimized, showcasePage }: ContentProps) {
-  switch (id) {
-    case 'showcase':
-      return <Showcase request={showcasePage ?? undefined} />;
-    case 'fiveletters':
-      return <FiveLetters active={active} initial={shotGuesses} />;
-    case 'credits':
-      return <Credits />;
-    default:
-      // Minimizing unmounts the game so its emulator and audio stop; restoring starts it again.
-      return minimized ? null : <DosGame id={id} />;
-  }
-}
+type Request<T> = (T & { n: number }) | null; // n changes on every request so asking twice still counts
 
 export default function App() {
-  const [selected, setSelected] = useState<AppId | null>(shot === 'selected' ? 'fiveletters' : null);
-  // Icon whose window was opened last: its label shows a dotted red focus rectangle until any window is pressed.
-  const [opened, setOpened] = useState<AppId | null>(null);
-  // The icon column jumps up 9px when the first window opens (My Showcase is open at load) and resets on reboot.
-  const [shifted, setShifted] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(shot === 'startmenu');
+  const [selected, setSelected] = useState<DeskKey | null>(shot === 'selected' ? 'hd' : null);
+  const [menu, setMenu] = useState<MenuId | null>(shot === 'tmenu' ? 't' : null);
   const [sys, dispatch] = useReducer(reduce, undefined, () => {
     let s = initialSystem({ w: window.innerWidth, h: window.innerHeight }, initialOpen());
     if (shot === 'windows' || shot === 'credits') s = reduce(s, { type: 'focus', id: 'credits' });
     if (shot === 'maximized') s = reduce(s, { type: 'toggleMax', id: 'showcase' });
-    // A phone-width standalone page has no room for a floating window: Showcase starts maximised.
+    // A phone-width standalone page has no room for a floating window: Showcase starts zoomed.
     if (shot !== 'maximized' && window.parent === window && window.innerWidth <= 768) s = reduce(s, { type: 'toggleMax', id: 'showcase' });
     if (shot === 'minimized') s = reduce(s, { type: 'minimize', id: 'showcase' });
     return s;
   });
-  // Click time of "Shut down...", non-null while the shutdown screen is up.
+  // Click time of "Shut Down…", non-null while the shutdown screen is up.
   const [shutdownAt, setShutdownAt] = useState<Date | null>(shot === 'shutdown' ? new Date() : null);
   const active = activeId(sys);
-  const pressed = pressedId(sys);
 
-  // Opening a window or pressing inside one clears the desktop icon selection.
+  // Opening a window or pressing inside one clears the desktop selection.
   const send = useCallback((a: Action) => {
-    if (a.type === 'open' || a.type === 'focus' || a.type === 'taskbar') setSelected(null);
-    if (a.type === 'focus') setOpened(null);
-    if (a.type === 'close') setOpened((o) => (o === a.id ? null : o));
+    if (a.type === 'open' || a.type === 'focus') setSelected(null);
     dispatch(a);
   }, []);
+  const open = useCallback((id: AppId) => send({ type: 'open', id }), [send]);
 
-  const [showcasePage, setShowcasePage] = useState<{ page: ShowcasePage; n: number } | null>(null);
-  const openTarget = useCallback(
-    (t: OpenTarget) => {
-      send({ type: 'open', id: 'showcase' });
-      setShowcasePage((prev) => ({ page: t.page, n: (prev?.n ?? 0) + 1 })); // n re-triggers the same page
+  const [showcasePage, setShowcasePage] = useState<Request<{ page: ShowcasePage }>>(null);
+  const [projectReq, setProjectReq] = useState<Request<{ slug: string }>>(null);
+  const showPage = useCallback(
+    (page: ShowcasePage) => {
+      open('showcase');
+      setShowcasePage((prev) => ({ page, n: (prev?.n ?? 0) + 1 }));
     },
-    [send],
+    [open],
   );
+  const openTarget = useCallback((t: OpenTarget) => (t.app === 'showcase' ? showPage(t.page) : open(t.app)), [open, showPage]);
 
   // The outer page (postMessage) or the URL can ask for a window; see remote.ts.
   useEffect(() => {
@@ -109,61 +98,86 @@ export default function App() {
     return () => ro.disconnect();
   }, []);
 
-  // Any press outside the Start button and the menu closes the menu.
-  const onRootMouseDown = (e: React.MouseEvent) => {
-    if (menuOpen && !(e.target as Element).closest('[data-menu-zone]')) setMenuOpen(false);
-  };
-
-  const finishShutdown = useCallback(() => {
+  // Back to a fresh desktop: what the shutdown screen ends in, and what Restart does at once.
+  const reboot = useCallback(() => {
     dispatch({ type: 'closeAll' });
     setSelected(null);
-    setOpened(null);
-    setShifted(false);
-    setMenuOpen(false);
+    setMenu(null);
     setShutdownAt(null);
   }, []);
 
+  const running = useMemo(() => new Set(sys.wins.map((w) => dockOwner(w.id)).filter((id): id is AppId => id !== null)), [sys.wins]);
+
+  const content = (id: AppId, isActive: boolean, minimized: boolean) => {
+    switch (id) {
+      case 'showcase':
+        return <Showcase request={showcasePage ?? undefined} />;
+      case 'fiveletters':
+        return <FiveLetters active={isActive} initial={shotGuesses} />;
+      case 'credits':
+        return <Credits />;
+      case 'games':
+        return <Games onOpen={open} />;
+      case 'harddisk':
+        return <HardDisk onProjects={() => open('projects')} onExperience={() => showPage('experience')} />;
+      case 'projects':
+        return <Projects request={projectReq ?? undefined} />;
+      case 'resume':
+        return <Resume />;
+      case 'contact':
+        return <Contact />;
+      case 'terminal':
+        return (
+          <Terminal
+            active={isActive}
+            initial={shotTerminal}
+            onEffect={(e) => {
+              if (e.open === 'projects') setProjectReq((prev) => ({ slug: e.project, n: (prev?.n ?? 0) + 1 }));
+              open(e.open);
+            }}
+          />
+        );
+      default:
+        // Minimizing unmounts the game so its emulator and audio stop; restoring starts it again.
+        return minimized ? null : <DosGame id={id} />;
+    }
+  };
+
   return (
-    <div className="screen" onMouseDown={onRootMouseDown}>
+    <div className="screen">
       <Desktop
         selected={selected}
-        opened={opened}
-        shifted={shifted}
-        onSelect={(id) => {
-          setSelected(id);
+        onSelect={(key) => {
+          setSelected(key);
           dispatch({ type: 'blur' });
         }}
-        onOpen={(id) => {
-          setOpened(id);
-          setShifted(true);
-          send({ type: 'open', id });
-        }}
+        onOpen={open}
       />
       <div className="win-layer">
         {sys.wins.map((w) => (
           <Window key={w.id} win={w} active={active === w.id} dispatch={send}>
-            <Content id={w.id} active={active === w.id} minimized={w.minimized} showcasePage={showcasePage} />
+            {content(w.id, active === w.id, w.minimized)}
           </Window>
         ))}
       </div>
-      {menuOpen && (
-        <StartMenu
-          shuttingDown={shutdownAt !== null}
-          onShutDown={() => {
-            // The menu stays open (hidden by the dark screen) and the active window turns inactive.
-            dispatch({ type: 'blur' });
-            setShutdownAt(new Date());
-          }}
-        />
-      )}
-      <Taskbar
-        menuOpen={menuOpen}
-        onToggleMenu={() => setMenuOpen((o) => !o)}
+      <MenuBar
+        open={menu}
+        setOpen={setMenu}
+        active={active}
         wins={sys.wins}
-        pressed={pressed}
-        onTaskClick={(id) => send({ type: 'taskbar', id })}
+        onAbout={() => open('credits')}
+        // NEEDS DECISION: Restart skips the shutdown log and goes straight to a fresh, empty desktop.
+        onRestart={reboot}
+        onShutDown={() => {
+          dispatch({ type: 'blur' });
+          setShutdownAt(new Date());
+        }}
+        onClose={(id) => send({ type: 'close', id })}
+        onMinimize={(id) => send({ type: 'minimize', id })}
+        onFocus={(id) => send({ type: 'open', id })}
       />
-      {shutdownAt && <Shutdown clickedAt={shutdownAt} onDone={finishShutdown} />}
+      <Dock running={running} onOpen={open} hoverSlot={shotDockSlot} />
+      {shutdownAt && <Shutdown clickedAt={shutdownAt} onDone={reboot} />}
     </div>
   );
 }

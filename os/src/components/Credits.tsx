@@ -35,7 +35,7 @@ const PAGES: Section[][] = [
     {
       title: 'Fonts',
       rows: [
-        ['Pixelify Sans', 'The Pixelify Sans Project Authors'],
+        ['Nunito Sans', 'The Nunito Sans Project Authors'],
         ['VT323', 'Peter Hull, The VT323 Project Authors'],
       ],
       note: 'Both fonts are licensed under the SIL Open Font License 1.1.',
@@ -47,6 +47,8 @@ const PAGES: Section[][] = [
       rows: [
         ['Kenney', 'Furniture model and UI sounds (CC0)'],
         ['Monitor glass & noise', 'Generated in code'],
+        ['Mac OS X 10.0 icons', '© Apple Inc.'],
+        ['Game logos', '© their publishers'],
       ],
     },
   ],

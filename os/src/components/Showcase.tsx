@@ -1,18 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { icons } from '../icons';
+import { aqua } from '../apps';
+import { EMAIL, LINKS, PROJECTS, RESUME_FILE } from '../data/profile';
 import { parseOpenQuery, SHOWCASE_PAGES } from '../remote';
 import type { ShowcasePage as Page } from '../remote';
 
-const RESUME_FILE = 'MinChia-Tommy-Huang-Resume.pdf';
-
 const asset = (name: string) => `${import.meta.env.BASE_URL}showcase/${name}`;
-const SITE = 'https://minchiahuang.dev';
-const EMAIL = 'minchia.huang.dev@gmail.com';
-const LINKS = [
-  { label: 'GitHub', href: 'https://github.com/minchiaHuang' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/minchiahuang/' },
-];
 
 const Ext = ({ href, children }: { href: string; children: ReactNode }) => (
   <a href={href} target="_blank" rel="noreferrer">
@@ -38,50 +31,6 @@ const JOBS: Job[] = [
     bullets: [
       <>Ran speaker outreach and scheduling across 3 events as the main external contact within a 5-member committee.</>,
     ],
-  },
-];
-
-interface Project { name: string; meta: string; blurb: string; image?: string; links: { label: string; href: string }[] }
-const PROJECTS: Project[] = [
-  {
-    name: 'CookPilot',
-    meta: 'iOS | ICON x Lyra Hackathon, 1st place | 2026',
-    blurb:
-      'Look at your fridge through Ray-Ban Meta glasses and it tells you what you can cook tonight, read into your ear step by step. I owned the iOS build end to end: SwiftUI, the step state machine, voice control and the model service layer.',
-    image: 'cookpilot-home.png',
-    links: [{ label: 'Case study', href: `${SITE}/cookpilot.html` }],
-  },
-  {
-    name: 'Visual Eyes',
-    meta: 'visionOS | Apple Foundation Program | 2026',
-    blurb:
-      'Asks who you want to become, then builds a five-room walkable museum of that future. A two-stage pipeline produces a structured story and images, composited onto named wall frames in a USDZ gallery. Four-person team, I built the app.',
-    image: 've-gallery.jpg',
-    links: [
-      { label: 'Case study', href: `${SITE}/visual-eyes.html` },
-      { label: 'GitHub', href: 'https://github.com/minchiaHuang/Vision-Pro' },
-    ],
-  },
-  {
-    name: 'LearnGuard',
-    meta: 'MCP | OpenAI Codex Hackathon',
-    blurb:
-      'A gate that makes a coding assistant earn its permissions. The red-team suite blocks 8 of 8 attacks while letting legitimate actions through.',
-    links: [{ label: 'GitHub', href: 'https://github.com/minchiaHuang/LearnGuard' }],
-  },
-  {
-    name: 'VaxAgent',
-    meta: 'FastAPI | HSIL, Harvard T.H. Chan',
-    blurb:
-      'Tumour mutation data in, ranked neoantigen candidates out, with every step traceable back to the file it came from.',
-    links: [{ label: 'GitHub', href: 'https://github.com/minchiaHuang/VaxAgent' }],
-  },
-  {
-    name: 'Accenture x SUBAA Datathon 2026',
-    meta: 'Python | Finalist, top 4 of 40 teams',
-    blurb:
-      'Analysed 105k+ records across four HR datasets and built a reusable matplotlib style module so new figures matched the existing Excel charts. Traced all 24 cited figures back to the raw CSVs before the final.',
-    links: [],
   },
 ];
 
@@ -158,7 +107,7 @@ function Pages({ page }: { page: Page }) {
         <div className="sc-job">Software Engineer</div>
         <div className="sc-tagline">full-stack, backend, AI &amp; automation</div>
         <div className="sc-home-buttons">
-          <button type="button" className="sc-big-btn" onClick={() => go('resume')}>
+          <button type="button" className="sc-big-btn aqua-btn primary" onClick={() => go('resume')}>
             Résumé
           </button>
         </div>
@@ -199,7 +148,7 @@ function Pages({ page }: { page: Page }) {
 function Resume() {
   return (
     <div className="sc-resume">
-      <img src={icons.resume} alt="" draggable={false} className="sc-resume-icon" />
+      <img src={aqua('pdf.png')} alt="" draggable={false} className="sc-resume-icon" />
       <div>
         <strong>Looking for my résumé?</strong>
         <br />

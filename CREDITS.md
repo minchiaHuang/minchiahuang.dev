@@ -59,12 +59,26 @@ No files yet.
 
 ## OS (os/)
 
+The Mac OS X icons and game logos under `os/public/aqua/` are third-party images, a deliberate exception approved by the site owner on 2026-10-04.
+
 | Path | What | Source | Licence |
 |---|---|---|---|
-| `os/src/fonts/PixelifySans.ttf` | Pixelify Sans, window titles | https://github.com/eifetx/Pixelify-Sans (via Google Fonts) | SIL OFL 1.1, text in `os/src/fonts/OFL-PixelifySans.txt` |
-| `os/src/fonts/VT323-Regular.ttf` | VT323 | https://fonts.google.com/specimen/VT323 | SIL OFL 1.1, text in `os/src/fonts/OFL-VT323.txt` |
-| `os/src/icons.ts` | Desktop, taskbar and menu icons | Original 16x16 drawings for this project | Own work |
+| `os/src/fonts/NunitoSans.ttf` | Nunito Sans (variable), the OS interface font | https://github.com/google/fonts/tree/main/ofl/nunitosans | SIL OFL 1.1, text in `os/src/fonts/OFL-NunitoSans.txt` |
+| `os/src/fonts/VT323-Regular.ttf` | VT323, Terminal app | https://fonts.google.com/specimen/VT323 | SIL OFL 1.1, text in `os/src/fonts/OFL-VT323.txt` |
 | `os/public/showcase/` | Résumé PDF and project screenshots | Min-Chia (Tommy) Huang's own work | All rights reserved |
+| `os/public/aqua/finder.png` | Finder icon (Showcase in the Dock) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Finder.app Finder.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/folder.png` | Generic folder (Projects, folders) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), HIToolbox.rsrc icns -3999, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/preview.png` | Preview icon (Résumé) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Preview.app preview.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/mail.png` | Mail 1.0 icon (Contact) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Mail.app app.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/chess.png` | Chess icon (Games) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Chess.app chess.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/textedit.png` | TextEdit icon (Five Letters) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), TextEdit.app Edit.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/terminal.png` | Terminal icon | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Terminal.app icon.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/trash.png` | Trash (empty) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), HIToolbox.rsrc icns -3993, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/harddisk.png` | Generic hard disk (Tommy HD) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), HIToolbox.rsrc icns -3995, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/pdf.png` | PDF document (Resume.pdf) | Apple Mac OS X 10.0.3 install CD (archive.org/download/mac-osx-10.0.3), Preview.app PDF.icns, 128px PNG | Third-party: © Apple Inc.; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/logo-oregon-trail-deluxe.png` | The Oregon Trail Deluxe logo (MECC, 1992) | https://images.launchbox-app.com/fa14236d-5a31-41b0-b278-eb6852fff431.png, scaled to 320px | Third-party: © the publisher; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/logo-doom-1993.png` | DOOM logo (id Software, 1993) | https://images.launchbox-app.com/6310b53c-f7d7-4d9c-b91c-af9cd176b994.png, scaled to 320px | Third-party: © the publisher; used for identification on a non-commercial portfolio, all rights belong to their owners |
+| `os/public/aqua/logo-scrabble-classic.png` | Classic US Scrabble wordmark | https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Scrabble_American_logo.svg/960px-Scrabble_American_logo.svg.png, scaled to 320px | Third-party: © the publisher; used for identification on a non-commercial portfolio, all rights belong to their owners |
 
 ## DOS games (downloaded at deploy time, never in git)
 
