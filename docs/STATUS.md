@@ -20,6 +20,6 @@
 - 沒在真 GPU 瀏覽器確認過斜角看螢幕時遮擋平面邊緣（只看過 headless Chrome）。
 
 ## 下一步
-1. 改版（Figma 檔 eDceUbam5oYe1EmYsYF8FS「Tommy-Huang」）：參考頁（henryheffernan.com 截圖）、3D 候選 8 款都已放上。使用者偏好 iMac G3 半透明蛋殼＋同款鍵盤滑鼠，色彩版渲染中；選定後寫實作計畫（半透明殼無法烘焙，three.js 需即時透明材質）。
+1. 改版（Figma 檔 eDceUbam5oYe1EmYsYF8FS「Tommy-Huang」）：參考頁（參考網站截圖）、3D 候選 8 款都已放上。使用者偏好 iMac G3 半透明蛋殼＋同款鍵盤滑鼠，色彩版渲染中；選定後寫實作計畫（半透明殼無法烘焙，three.js 需即時透明材質）。
 2. 之後：OS 外觀候選（03 OS Skins）、內容對照與改寫（04 Content，Projects 加 Hackathon 分類）。
 3. Phase 3 AI 道具（選做）。
