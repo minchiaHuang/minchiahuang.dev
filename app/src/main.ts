@@ -121,7 +121,7 @@ function start3D() {
   tick();
 }
 
-// Phones, no WebGL, reduced motion: straight to the OS, before any 3D file is requested.
+// Phones and no WebGL: straight to the OS, before any 3D file is requested.
 // Shot mode always renders the scene (screenshots are taken at desktop size).
 if (!SHOT && shouldUseFlatOS(readFlatEnv(hasWebGL))) {
   goFlat();
