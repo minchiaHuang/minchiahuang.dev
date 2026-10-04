@@ -1,6 +1,7 @@
 import { typeText } from './Typewriter';
+import { safeStorage, readMuted, writeMuted, isMuteKey } from './muteState';
 
-const NAME_TEXT = 'Tommy Huang';
+const NAME_TEXT = 'Min-Chia (Tommy) Huang';
 const TITLE_TEXT = 'Software Engineer';
 
 const asset = (file: string) => import.meta.env.BASE_URL + 'textures/UI/' + file;
@@ -114,12 +115,26 @@ export default class InfoOverlay {
     const img = document.createElement('img');
     img.className = 'mute-icon';
     img.src = asset('volume_on.svg');
-    let muted = false;
-    return this.control(img, () => {
+    const store = safeStorage();
+    let muted = readMuted(store);
+    const show = () => { img.src = asset(muted ? 'volume_off.svg' : 'volume_on.svg'); };
+    const toggle = () => {
       muted = !muted;
-      img.src = asset(muted ? 'volume_off.svg' : 'volume_on.svg');
+      writeMuted(store, muted);
+      show();
       window.dispatchEvent(new CustomEvent('muteToggle', { detail: muted }));
+    };
+    show();
+    // AudioManager reads the starting state from storage too; this keeps any other listener in sync.
+    queueMicrotask(() => window.dispatchEvent(new CustomEvent('muteToggle', { detail: muted })));
+    window.addEventListener('keydown', (e) => {
+      const target = e.target as HTMLElement | null;
+      const editable = !!target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+      // MonitorScreen flags keys forwarded from the OS iframe, so typing "M" there never toggles.
+      const inComputer = (e as Event & { inComputer?: boolean }).inComputer === true;
+      if (isMuteKey({ key: e.key, repeat: e.repeat, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, targetIsEditable: editable, inComputer })) toggle();
     });
+    return this.control(img, toggle);
   }
 
   private freeCamButton(): HTMLDivElement {

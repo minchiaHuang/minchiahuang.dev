@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { readMuted, safeStorage } from './muteState';
 
 const REF_DISTANCE = 10000;
 const MOUSE_AT = new THREE.Vector3(800, -300, 1200);
@@ -32,6 +33,8 @@ export default class AudioManager {
   private emitterMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
   private office?: Sound;
   private lastKey = '';
+  private muted = readMuted(safeStorage());
+  private started = false;
 
   constructor(
     private scene: THREE.Scene,
@@ -41,15 +44,25 @@ export default class AudioManager {
     camera.add(this.listener);
     this.bindComputer();
 
+    this.listener.setMasterVolume(this.muted ? 0 : 1);
+
     window.addEventListener('loadingScreenDone', () => {
       // The START click is the user gesture that lets the context run.
+      this.started = true;
       this.resume();
       setTimeout(() => this.resume(), 100);
       this.office = this.play('office', { volume: 1, loop: true, lowpass: 1000 });
       this.play('startup', { volume: 0.4 });
     });
     window.addEventListener('muteToggle', (e) => {
-      this.listener.setMasterVolume((e as CustomEvent).detail ? 0 : 1);
+      this.muted = Boolean((e as CustomEvent).detail);
+      this.listener.setMasterVolume(this.muted ? 0 : 1);
+    });
+    // A hidden tab should be silent; resume only after START, since before it no sound should play.
+    document.addEventListener('visibilitychange', () => {
+      const ctx = this.listener.context;
+      if (document.hidden) void ctx.suspend();
+      else if (this.started) void ctx.resume();
     });
   }
 
