@@ -4,18 +4,17 @@ export const FLAT_MAX_WIDTH = 768;
 export interface FlatEnv {
   width: number;
   webgl: boolean;
-  reducedMotion: boolean;
 }
 
+// Reduced motion is not a reason: the camera jumps instead of moving (Camera.ts).
 export function shouldUseFlatOS(env: FlatEnv): boolean {
-  return env.width <= FLAT_MAX_WIDTH || !env.webgl || env.reducedMotion;
+  return env.width <= FLAT_MAX_WIDTH || !env.webgl;
 }
 
 export function readFlatEnv(hasWebGL: () => boolean): FlatEnv {
   return {
     width: window.innerWidth,
     webgl: hasWebGL(),
-    reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   };
 }
 

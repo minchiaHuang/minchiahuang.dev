@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { shouldUseFlatOS, FLAT_MAX_WIDTH } from './flatMode.ts';
 
-const desktop = { width: 1440, webgl: true, reducedMotion: false };
+const desktop = { width: 1440, webgl: true };
 
 test('desktop with WebGL gets the 3D scene', () => {
   assert.equal(shouldUseFlatOS(desktop), false);
@@ -19,6 +19,7 @@ test('no WebGL is flat', () => {
   assert.equal(shouldUseFlatOS({ ...desktop, webgl: false }), true);
 });
 
-test('reduced motion is flat', () => {
-  assert.equal(shouldUseFlatOS({ ...desktop, reducedMotion: true }), true);
+test('reduced motion is not a reason to go flat', () => {
+  // The camera moves instantly instead (Camera.ts); the visitor still gets the 3D scene.
+  assert.equal(shouldUseFlatOS({ ...desktop, reducedMotion: true } as typeof desktop), false);
 });
