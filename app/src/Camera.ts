@@ -11,10 +11,6 @@ interface Keyframe { position: THREE.Vector3; focalPoint: THREE.Vector3 }
 
 const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-// Reduced motion keeps the 3D scene but drops camera movement: transitions jump to their
-// keyframe, and the idle drift and desk parallax hold still.
-const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 // Keyframes for the iMac scene (app units = glTF units x 900). The monitor distance fits the
 // glass (ScreenAnchor height, ~710 units) in the 35° field of view with ~15% margin:
 // 355 / tan(17.5°) x 1.15 ≈ 1295. The old CRT's 1024 tall screen gave 1870 the same way.
@@ -181,7 +177,6 @@ export default class Camera {
   transition(key: CameraKey, duration = 1000, easing: EasingFn = QuinticInOut, done?: () => void) {
     if (this.current === key) return;
     if (this.target) this.tweens = [];
-    if (REDUCED_MOTION) duration = 1; // done on the next frame (a 0 ms tween divides by zero)
 
     this.current = undefined;
     this.target = key;
@@ -206,7 +201,7 @@ export default class Camera {
   update() {
     const now = performance.now();
     // Shot mode freezes time: t = 0, nothing advances.
-    const elapsed = SHOT || REDUCED_MOTION ? 0 : now - this.startTime;
+    const elapsed = SHOT ? 0 : now - this.startTime;
     const delta = SHOT ? 0 : now - this.lastTime;
     this.lastTime = now;
 
@@ -244,8 +239,8 @@ export default class Camera {
     this.frames.monitor.position.z =
       this.monitorOrigin.z + (ratio * 0.64 - (w < 768 ? 0 : 0.32)) * MONITOR_DISTANCE;
 
-    // desk: chase the mouse; shot mode and reduced motion sit exactly on the keyframe
-    if (SHOT || REDUCED_MOTION) {
+    // desk: chase the mouse; shot mode sits exactly on the keyframe
+    if (SHOT) {
       this.deskFoc.copy(KEYS.desk.focalPoint);
       this.deskPos.copy(KEYS.desk.position);
     } else {

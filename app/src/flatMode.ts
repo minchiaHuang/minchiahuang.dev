@@ -6,7 +6,7 @@ export interface FlatEnv {
   webgl: boolean;
 }
 
-// Reduced motion is not a reason: the camera jumps instead of moving (Camera.ts).
+// Reduced motion is not a reason: the visitor still gets the 3D scene.
 export function shouldUseFlatOS(env: FlatEnv): boolean {
   return env.width <= FLAT_MAX_WIDTH || !env.webgl;
 }

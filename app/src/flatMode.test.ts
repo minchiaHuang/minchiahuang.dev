@@ -20,6 +20,6 @@ test('no WebGL is flat', () => {
 });
 
 test('reduced motion is not a reason to go flat', () => {
-  // The camera moves instantly instead (Camera.ts); the visitor still gets the 3D scene.
+  // The visitor still gets the 3D scene.
   assert.equal(shouldUseFlatOS({ ...desktop, reducedMotion: true } as typeof desktop), false);
 });
