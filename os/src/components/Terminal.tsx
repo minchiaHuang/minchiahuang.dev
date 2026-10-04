@@ -62,7 +62,8 @@ export default function Terminal({ active, onEffect, initial = [] }: Props) {
           autoComplete="off"
           aria-label="Terminal input"
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          // Enter that confirms an IME composition (e.g. Chinese input) must not run the line.
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && submit()}
         />
       </div>
     </div>

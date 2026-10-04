@@ -57,15 +57,20 @@ export default function App() {
   const [shutdownAt, setShutdownAt] = useState<Date | null>(shot === 'shutdown' ? new Date() : null);
   const active = activeId(sys);
 
-  // Opening a window or pressing inside one clears the desktop selection.
+  const [showcasePage, setShowcasePage] = useState<Request<{ page: ShowcasePage }>>(null);
+  const [projectReq, setProjectReq] = useState<Request<{ slug: string }>>(null);
+
+  // Opening a window or pressing inside one clears the desktop selection. Closing Showcase or Projects drops the
+  // page or project it was last asked for: a window mounts with its request, so a stale one would reopen the old
+  // page instead of the start page.
   const send = useCallback((a: Action) => {
     if (a.type === 'open' || a.type === 'focus') setSelected(null);
+    if (a.type === 'close' && a.id === 'showcase') setShowcasePage(null);
+    if (a.type === 'close' && a.id === 'projects') setProjectReq(null);
     dispatch(a);
   }, []);
   const open = useCallback((id: AppId) => send({ type: 'open', id }), [send]);
 
-  const [showcasePage, setShowcasePage] = useState<Request<{ page: ShowcasePage }>>(null);
-  const [projectReq, setProjectReq] = useState<Request<{ slug: string }>>(null);
   const showPage = useCallback(
     (page: ShowcasePage) => {
       open('showcase');
@@ -98,13 +103,20 @@ export default function App() {
     return () => ro.disconnect();
   }, []);
 
-  // Back to a fresh desktop: what the shutdown screen ends in, and what Restart does at once.
+  // Back to a fresh, empty desktop: what the shutdown screen ends in.
   const reboot = useCallback(() => {
     dispatch({ type: 'closeAll' });
     setSelected(null);
     setMenu(null);
     setShutdownAt(null);
+    setShowcasePage(null);
+    setProjectReq(null);
   }, []);
+  // NEEDS DECISION: Restart skips the shutdown log; it reboots at once and reopens Showcase, as at first load.
+  const restart = useCallback(() => {
+    reboot();
+    dispatch({ type: 'open', id: 'showcase' });
+  }, [reboot]);
 
   const running = useMemo(() => new Set(sys.wins.map((w) => dockOwner(w.id)).filter((id): id is AppId => id !== null)), [sys.wins]);
 
@@ -166,8 +178,7 @@ export default function App() {
         active={active}
         wins={sys.wins}
         onAbout={() => open('credits')}
-        // NEEDS DECISION: Restart skips the shutdown log and goes straight to a fresh, empty desktop.
-        onRestart={reboot}
+        onRestart={restart}
         onShutDown={() => {
           dispatch({ type: 'blur' });
           setShutdownAt(new Date());

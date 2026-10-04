@@ -6,6 +6,7 @@ const MAX = 76; // icon size right under the pointer
 const GAP = 6;
 const REACH = 2.5 * (BASE + GAP); // how far from the pointer an icon still grows
 const DIVIDER = 17; // width of the divider slot before the Trash
+const NARROW = '(max-width: 520px)'; // must match the .dock zoom media query in styles.css
 
 interface Props {
   running: Set<AppId>; // apps with an open window (a game counts as Games)
@@ -38,7 +39,9 @@ export default function Dock({ running, onOpen, hoverSlot }: Props) {
   return (
     <div
       className="dock"
-      onMouseMove={(e) => setPointer(e.clientX - document.documentElement.clientWidth / 2)}
+      // At phone widths the Dock is CSS-zoomed (styles.css), so the unscaled rest centres no longer match the
+      // pointer: skip magnification there.
+      onMouseMove={(e) => !matchMedia(NARROW).matches && setPointer(e.clientX - document.documentElement.clientWidth / 2)}
       onMouseLeave={() => setPointer(rest)}
     >
       <div className="dock-shelf" />
