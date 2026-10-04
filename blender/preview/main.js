@@ -12,9 +12,9 @@ const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 5
 
 // Must match the keyframes in app/src/Camera.ts (app units / 900 = glTF units, fov 35).
 const VIEWS = {
-  idle: [[-20000, 12000, 20000], [0, -1000, 0]],
-  desk: [[0, 1800, 5500], [0, 500, 0]],
-  monitor: [[0, 950, 2000], [0, 950, 0]],
+  idle: [[-17500, 10500, 18500], [0, -600, 0]],
+  desk: [[0, 1700, 5200], [0, 550, 0]],
+  monitor: [[0, 950, 2125], [0, 950, 255]],
 }
 const params = new URLSearchParams(location.search)
 const view = VIEWS[params.get('view')] ?? VIEWS.idle

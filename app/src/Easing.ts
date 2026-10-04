@@ -1,4 +1,4 @@
-// Own easing functions (t in 0..1). Formulas match tween.js so the feel is the same as the reference.
+// Own easing functions (t in 0..1). Formulas match tween.js.
 export type EasingFn = (k: number) => number;
 
 export const QuinticInOut: EasingFn = (k) => {

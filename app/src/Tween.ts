@@ -3,7 +3,7 @@ import type { EasingFn } from './Easing';
 
 /**
  * Moves one Vector3 toward another over time. The end vector is read every frame, so a target
- * that keeps moving (idle drift, monitor z, desk parallax) is followed, like the reference.
+ * that keeps moving (idle drift, monitor z, desk parallax) is followed.
  */
 export default class Tween {
   private start = new THREE.Vector3();

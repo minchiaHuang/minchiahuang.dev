@@ -10,13 +10,14 @@ interface Keyframe { position: THREE.Vector3; focalPoint: THREE.Vector3 }
 
 const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-// Values from the reference inventory A3.
+// Keyframes for the v2 scene (app units = glTF units x 900). The monitor distance fits the
+// 1024 px tall screen in the 35° field of view with ~15% margin: 512 / tan(17.5°) x 1.15 ≈ 1870.
 const KEYS: Record<CameraKey, Keyframe> = {
-  idle: { position: v(-20000, 12000, 20000), focalPoint: v(0, -1000, 0) },
-  monitor: { position: v(0, 950, 2000), focalPoint: v(0, 950, 0) },
-  desk: { position: v(0, 1800, 5500), focalPoint: v(0, 500, 0) },
-  loading: { position: v(-35000, 35000, 35000), focalPoint: v(0, -5000, 0) },
-  orbitControlsStart: { position: v(-15000, 10000, 15000), focalPoint: v(-100, 350, 0) },
+  idle: { position: v(-17500, 10500, 18500), focalPoint: v(0, -600, 0) },
+  monitor: { position: v(0, 950, 1870 + 255), focalPoint: v(0, 950, 255) },
+  desk: { position: v(0, 1700, 5200), focalPoint: v(0, 550, 0) },
+  loading: { position: v(-30000, 32000, 34000), focalPoint: v(0, -4500, 0) },
+  orbitControlsStart: { position: v(-14000, 9000, 15500), focalPoint: v(0, 300, 0) },
 };
 
 const SMOOTH_OUT = bezier(0.13, 0.99, 0, 1);
@@ -63,9 +64,14 @@ export default class Camera {
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.maxPolarAngle = Math.PI / 2;
+    this.controls.minPolarAngle = 0.15; // not straight down
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.05; // never below the floor
+    // The walls stand behind and to the right of the scene and are single planes, so their back
+    // faces show through from outside: the free camera stays in front and to the left.
+    this.controls.minAzimuthAngle = -Math.PI / 2;
+    this.controls.maxAzimuthAngle = 0;
     this.controls.minDistance = 4000;
-    this.controls.maxDistance = 29000;
+    this.controls.maxDistance = 26000;
     instance.position.copy(this.frames.orbitControlsStart.position);
     this.controls.update();
 
@@ -104,24 +110,20 @@ export default class Camera {
   }
 
   private onLoadingDone() {
-    // The reference restarts its clock here, so the idle drift begins at t = 0 after loading.
+    // Restart the clock so the idle drift begins at t = 0 after loading.
     this.startTime = performance.now();
     if (SHOT && SHOT !== 'loading' && SHOT !== 'popup') {
       // Shot mode: jump to the state, no tween.
-      if (SHOT === 'freecam') this.shotFreeCam();
+      if (SHOT === 'freecam') this.startFreeCamAt('orbitControlsStart');
       else this.current = SHOT;
       return;
     }
     this.transition('idle', 2500, ExponentialOut);
   }
 
-  /**
-   * The reference's ?shot=freecam turns the controls on while the camera still sits on the loading
-   * keyframe, so OrbitControls pulls it in to maxDistance along that direction. Do the same so the
-   * baseline screenshot matches.
-   */
-  private shotFreeCam() {
-    this.instance.position.copy(this.frames.loading.position);
+  /** Shot mode: open the free camera directly on a keyframe, no tween (time is frozen there). */
+  private startFreeCamAt(key: CameraKey) {
+    this.instance.position.copy(this.frames[key].position);
     this.current = undefined;
     this.freeCam = true;
     this.webgl.style.pointerEvents = 'auto';

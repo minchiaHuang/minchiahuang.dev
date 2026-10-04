@@ -1,4 +1,4 @@
-// ?shot=<state> makes the page deterministic for screenshots (see docs/spec/shots.md).
+// ?shot=<state> makes the page deterministic for screenshots (tools/shoot.sh).
 export type ShotState = 'loading' | 'popup' | 'idle' | 'desk' | 'monitor' | 'freecam';
 
 const STATES: ShotState[] = ['loading', 'popup', 'idle', 'desk', 'monitor', 'freecam'];
