@@ -9,9 +9,6 @@ const PADDING = 0;
 const DEFAULT_POSITION = new THREE.Vector3(DEFAULT_ANCHOR.x, DEFAULT_ANCHOR.y, DEFAULT_ANCHOR.z);
 const DEFAULT_ROTATION = new THREE.Euler(0, 0, 0);
 
-// Layer offsets in app units per step. The bezel front sits only ~51 units in front of the glass,
-// so the outermost layer (24 steps) has to stay inside it or the side panels poke out as a box.
-const LAYER_DEPTH_SCALE = 1.5;
 const DIM_FACTOR = 0.7;
 
 type OsMessage =
@@ -25,7 +22,7 @@ type InComputerEvent = Event & { inComputer?: boolean; clientX?: number; clientY
 
 /**
  * The monitor: a real iframe placed in 3D with CSS3D, a GL plane that punches a hole in the canvas
- * so the room can hide it, glass layers in front of it, a side box, and a distance/angle dimmer.
+ * so the room can hide it, and a distance/angle dimmer.
  */
 export default class MonitorScreen {
   private position: THREE.Vector3;
@@ -44,7 +41,6 @@ export default class MonitorScreen {
     private scene: THREE.Scene,
     private cssScene: THREE.Scene,
     private camera: THREE.PerspectiveCamera,
-    smudge: THREE.Texture,
     placement?: { position: THREE.Vector3; quaternion: THREE.Quaternion; size?: { w: number; h: number } },
   ) {
     // The bake exports a ScreenAnchor node; the constants only apply when it is missing.
@@ -56,9 +52,7 @@ export default class MonitorScreen {
     if (import.meta.env.DEV) console.log(`screen at ${this.position.x},${this.position.y},${this.position.z}`);
     this.bindPointer();
     this.createIframe();
-    const maxOffset = this.createLayers(smudge);
-    this.createSides(maxOffset);
-    this.createDimmer(maxOffset);
+    this.createDimmer();
   }
 
   // ---- pointer and OS messages -------------------------------------------
@@ -145,69 +139,18 @@ export default class MonitorScreen {
     return local.clone().applyQuaternion(this.quaternion);
   }
 
-  // ---- glass layers ------------------------------------------------------
+  // ---- dimmer ------------------------------------------------------------
 
-  private createLayers(smudge: THREE.Texture): number {
-    smudge.colorSpace = THREE.SRGBColorSpace;
-
-    // Layer order decides draw order among equal depths.
-    type Layer = {
-      texture: THREE.Texture; blending?: THREE.Blending; opacity?: number; offset: number;
-    };
-    const layers: Layer[] = [
-      // The CRT noise/scanline and edge-shadow layers were dropped: on the Aqua OS they read as a
-      // dark filter over the screen.
-      { texture: smudge, blending: THREE.AdditiveBlending, opacity: 0.12, offset: 24 },
-    ];
-
-    let maxOffset = -1;
-    for (const layer of layers) {
-      const offset = layer.offset * LAYER_DEPTH_SCALE;
-      const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(this.size.w, this.size.h),
-        new THREE.MeshBasicMaterial({
-          map: layer.texture, blending: layer.blending, side: THREE.DoubleSide,
-          opacity: layer.opacity, transparent: true,
-        }),
-      );
-      mesh.position.copy(this.position).add(this.toWorld(new THREE.Vector3(0, 0, offset)));
-      mesh.rotation.copy(this.rotation);
-      this.scene.add(mesh);
-      maxOffset = Math.max(maxOffset, offset);
-    }
-    return maxOffset;
-  }
-
-  /** Four panels that close the gap between the screen and the outermost layer. */
-  private createSides(maxOffset: number) {
-    const d = (x: number, y: number) => new THREE.Vector3(x, y, maxOffset / 2);
-    const quarter = Math.PI / 2;
-    const { w, h } = this.size;
-    const sides = [
-      { size: [maxOffset, h], at: d(-w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
-      { size: [maxOffset, h], at: d(w / 2, 0), rot: new THREE.Euler(0, quarter, 0) },
-      { size: [w, maxOffset], at: d(0, h / 2), rot: new THREE.Euler(quarter, 0, 0) },
-      { size: [w, maxOffset], at: d(0, -h / 2), rot: new THREE.Euler(quarter, 0, 0) },
-    ];
-    for (const s of sides) {
-      const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(s.size[0], s.size[1]),
-        new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: 0x48493f }),
-      );
-      mesh.position.copy(this.position).add(this.toWorld(s.at));
-      mesh.quaternion.copy(this.quaternion).multiply(new THREE.Quaternion().setFromEuler(s.rot));
-      this.scene.add(mesh);
-    }
-  }
-
-  private createDimmer(maxOffset: number) {
+  // The glass layers (CRT noise, edge shadow, smudges) and the side panels that boxed them in were
+  // dropped: on the Aqua OS they read as a dark filter over the screen.
+  private createDimmer() {
     this.dimmer = new THREE.Mesh(
       new THREE.PlaneGeometry(this.size.w, this.size.h),
       new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide, color: 0x000000, transparent: true, blending: THREE.AdditiveBlending,
       }),
     );
-    this.dimmer.position.copy(this.position).add(this.toWorld(new THREE.Vector3(0, 0, maxOffset - 5)));
+    this.dimmer.position.copy(this.position).add(this.toWorld(new THREE.Vector3(0, 0, 1)));
     this.dimmer.rotation.copy(this.rotation);
     this.scene.add(this.dimmer);
   }

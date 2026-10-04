@@ -15,7 +15,6 @@ const sources: Source[] = [
   { name: 'decorModel', type: 'gltfModel', path: 'models/decor.glb' },
   { name: 'decorTexture', type: 'texture', path: 'models/decor.webp' },
   { name: 'shellModel', type: 'gltfModel', path: 'models/shell.glb' },
-  { name: 'monitorSmudgeTexture', type: 'texture', path: 'textures/monitor/smudges.png' },
   { name: 'mouseDown', type: 'audio', path: 'audio/mouse/mouse_down.mp3' },
   { name: 'mouseUp', type: 'audio', path: 'audio/mouse/mouse_up.mp3' },
   { name: 'keyboardKeydown1', type: 'audio', path: 'audio/keyboard/key_1.mp3' },
