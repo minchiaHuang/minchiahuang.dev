@@ -1,0 +1,14 @@
+{
+  "language": "English",
+  "base_branch": "origin/main",
+  "worker": {
+    "model": "sonnet",
+    "test_command": "node --test {files}",
+    "full_check_command": "bash bin/verify.sh"
+  },
+  "merge_queue": {
+    "enabled": true,
+    "worktree_name": "merge-queue",
+    "targets": []
+  }
+}
