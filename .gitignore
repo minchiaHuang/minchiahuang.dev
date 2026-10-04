@@ -5,3 +5,5 @@ blender/cache/
 app/public/os/
 app/public/models/
 os/public/games/
+test-results/
+playwright-report/
