@@ -13,11 +13,10 @@ export default class BakedModel {
     texture.colorSpace = THREE.SRGBColorSpace;
     this.material = new THREE.MeshBasicMaterial({ map: texture });
 
+    // Scale the root, not each mesh: meshopt-compressed meshes carry their own node transforms.
+    gltf.scene.scale.setScalar(scale);
     gltf.scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.scale.setScalar(scale);
-        child.material = this.material;
-      }
+      if (child instanceof THREE.Mesh) child.material = this.material;
     });
   }
 

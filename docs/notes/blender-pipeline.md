@@ -47,6 +47,27 @@ Cycles 的 `use_denoising` 只作用在算圖，不作用在 bake，所以烘完
 
 三組 UV 重疊 texel 都是 0。
 
+## 壓縮
+
+```
+node tools/compress.mjs [--src blender/out/v2] [--out app/public/models]
+```
+
+`npm run build` 會在 app 建置前自動跑。輸出在 `app/public/models/`（gitignored）：三個 meshopt GLB 加三張 WebP lightmap（品質 85）。`blender/out/v2/` 的原始烘焙不動。
+
+- `prune` 必須 `keepLeaves` + `keepExtras`：`ScreenAnchor` 是空節點，螢幕尺寸放在 extras。
+- meshopt 會量化頂點，反量化的縮放寫在 mesh 節點的 transform。所以 `BakedModel` 改成放大 `gltf.scene` 根節點，不再對每個 mesh 設 `scale`（那會蓋掉量化縮放）。
+- app 端用 three.js 內建的 `meshopt_decoder`，沒有新的瀏覽器套件。
+
+| 檔案 | 原始 | 壓縮後 |
+|---|---|---|
+| computer.glb | 131,668 B | 52,380 B |
+| environment.glb | 98,280 B | 41,252 B |
+| decor.glb | 111,448 B | 61,404 B |
+| 貼圖（computer / environment / decor） | 570,397 B / 346,422 B / 364,022 B | 181,636 / 76,994 / 106,870 B（WebP） |
+
+外層場景總量：`within budget: 858180 of 5000000 bytes`。
+
 ## 已知限制
 
 - 預覽的 live 模式對 v2 不準：那組燈光是為別的單位調的。只看 baked。

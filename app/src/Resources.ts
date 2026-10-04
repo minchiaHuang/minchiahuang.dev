@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import type { Source } from './sources';
 
 export interface ProgressInfo {
@@ -16,7 +17,7 @@ export default class Resources {
   loaded = 0;
   readonly toLoad: number;
 
-  private gltfLoader = new GLTFLoader();
+  private gltfLoader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   private textureLoader = new THREE.TextureLoader();
   private audioLoader = new THREE.AudioLoader();
 

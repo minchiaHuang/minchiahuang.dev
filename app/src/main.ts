@@ -1,4 +1,5 @@
 import './style.css';
+import * as THREE from 'three';
 import sources from './sources';
 import Resources from './Resources';
 import Renderers, { hasWebGL } from './Renderers';
@@ -77,9 +78,17 @@ function start3D() {
       for (const [model, texture] of models) {
         renderers.scene.add(new BakedModel(resources.gltf(model), resources.texture(texture), BAKED_SCALE).object);
       }
+      const computer = resources.gltf('computerSetupModel').scene;
+      computer.updateMatrixWorld(true);
+      const anchor = computer.getObjectByName('ScreenAnchor');
+      const placement = anchor
+        ? { position: anchor.getWorldPosition(new THREE.Vector3()), quaternion: anchor.getWorldQuaternion(new THREE.Quaternion()) }
+        : undefined;
+      if (!anchor) console.warn('ScreenAnchor missing: using the built-in screen position');
       monitor = new MonitorScreen(
         renderers.scene, renderers.cssScene, renderers.camera,
         resources.texture('monitorSmudgeTexture'), resources.texture('monitorShadowTexture'),
+        placement,
       );
       steam = new CoffeeSteam(renderers.scene);
       if (!SHOT) {

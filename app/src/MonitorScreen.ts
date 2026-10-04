@@ -8,8 +8,8 @@ const PADDING = 32;
 // Pointer coordinates are scaled by rect / (screen - padding), i.e. 1248 x 992.
 const CONTENT = { w: SCREEN.w - PADDING, h: SCREEN.h - PADDING };
 
-const POSITION = new THREE.Vector3(0, 950, 255);
-const ROTATION = new THREE.Euler(-3 * THREE.MathUtils.DEG2RAD, 0, 0);
+const DEFAULT_POSITION = new THREE.Vector3(0, 950, 255);
+const DEFAULT_ROTATION = new THREE.Euler(-3 * THREE.MathUtils.DEG2RAD, 0, 0);
 
 const LAYER_DEPTH_SCALE = 4;
 const DIM_FACTOR = 0.7;
@@ -49,6 +49,8 @@ const NOISE_FRAGMENT = /* glsl */ `
  * so the room can hide it, glass layers in front of it, a side box, and a distance/angle dimmer.
  */
 export default class MonitorScreen {
+  private position: THREE.Vector3;
+  private rotation: THREE.Euler;
   private iframe!: HTMLIFrameElement;
   private dimmer!: THREE.Mesh;
   private noise!: THREE.ShaderMaterial;
@@ -61,7 +63,12 @@ export default class MonitorScreen {
     private camera: THREE.PerspectiveCamera,
     smudge: THREE.Texture,
     shadow: THREE.Texture,
+    placement?: { position: THREE.Vector3; quaternion: THREE.Quaternion },
   ) {
+    // The bake exports a ScreenAnchor node; the constants only apply when it is missing.
+    this.position = placement?.position ?? DEFAULT_POSITION.clone();
+    this.rotation = placement ? new THREE.Euler().setFromQuaternion(placement.quaternion) : DEFAULT_ROTATION.clone();
+    if (import.meta.env.DEV) console.log(`screen at ${this.position.x},${this.position.y},${this.position.z}`);
     this.bindPointer();
     this.createIframe();
     const maxOffset = this.createLayers(smudge, shadow);
@@ -124,8 +131,8 @@ export default class MonitorScreen {
     });
 
     const object = new CSS3DObject(container);
-    object.position.copy(POSITION);
-    object.rotation.copy(ROTATION);
+    object.position.copy(this.position);
+    object.rotation.copy(this.rotation);
     this.cssScene.add(object);
 
     // Occluder: alpha 0 + NoBlending overwrites the canvas pixels with transparent ones where the
@@ -173,8 +180,8 @@ export default class MonitorScreen {
           opacity: layer.opacity, transparent: true,
         }),
       );
-      mesh.position.copy(POSITION).add(new THREE.Vector3(0, 0, offset));
-      mesh.rotation.copy(ROTATION);
+      mesh.position.copy(this.position).add(new THREE.Vector3(0, 0, offset));
+      mesh.rotation.copy(this.rotation);
       this.scene.add(mesh);
       maxOffset = Math.max(maxOffset, offset);
     }
@@ -196,7 +203,7 @@ export default class MonitorScreen {
         new THREE.PlaneGeometry(s.size[0], s.size[1]),
         new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: 0x48493f }),
       );
-      mesh.position.copy(POSITION).add(s.at);
+      mesh.position.copy(this.position).add(s.at);
       mesh.rotation.copy(s.rot);
       this.scene.add(mesh);
     }
@@ -209,8 +216,8 @@ export default class MonitorScreen {
         side: THREE.DoubleSide, color: 0x000000, transparent: true, blending: THREE.AdditiveBlending,
       }),
     );
-    this.dimmer.position.copy(POSITION).add(new THREE.Vector3(0, 0, maxOffset - 5));
-    this.dimmer.rotation.copy(ROTATION);
+    this.dimmer.position.copy(this.position).add(new THREE.Vector3(0, 0, maxOffset - 5));
+    this.dimmer.rotation.copy(this.rotation);
     this.scene.add(this.dimmer);
   }
 
@@ -218,7 +225,7 @@ export default class MonitorScreen {
 
   /** Dimmer: darker the farther the camera is and the more it looks at the screen from the side. */
   update() {
-    const view = this.camera.position.clone().sub(POSITION).normalize();
+    const view = this.camera.position.clone().sub(this.position).normalize();
     const dot = view.dot(new THREE.Vector3(0, 0, 1));
     const distance = this.camera.position.distanceTo(this.dimmer.position);
     const near = 1 / (distance / 10000);
