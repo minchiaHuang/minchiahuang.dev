@@ -51,6 +51,9 @@ const NOISE_FRAGMENT = /* glsl */ `
 export default class MonitorScreen {
   private position: THREE.Vector3;
   private rotation: THREE.Euler;
+  // Screen-local +z (the glass normal) in world space; layers are offset along it, not along world z.
+  private quaternion: THREE.Quaternion;
+  private normal: THREE.Vector3;
   private iframe!: HTMLIFrameElement;
   private dimmer!: THREE.Mesh;
   private noise!: THREE.ShaderMaterial;
@@ -68,6 +71,8 @@ export default class MonitorScreen {
     // The bake exports a ScreenAnchor node; the constants only apply when it is missing.
     this.position = placement?.position ?? DEFAULT_POSITION.clone();
     this.rotation = placement ? new THREE.Euler().setFromQuaternion(placement.quaternion) : DEFAULT_ROTATION.clone();
+    this.quaternion = new THREE.Quaternion().setFromEuler(this.rotation);
+    this.normal = new THREE.Vector3(0, 0, 1).applyQuaternion(this.quaternion);
     if (import.meta.env.DEV) console.log(`screen at ${this.position.x},${this.position.y},${this.position.z}`);
     this.bindPointer();
     this.createIframe();
@@ -144,9 +149,16 @@ export default class MonitorScreen {
     material.transparent = true;
     material.blending = THREE.NoBlending;
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(SCREEN.w, SCREEN.h), material);
-    plane.position.copy(object.position);
+    // The baked GLB has its own opaque Screen mesh on this exact plane; coplanar, the two z-fight per
+    // triangle and half the quad (the diagonal) stays opaque. One unit (~1 mm) in front wins cleanly.
+    plane.position.copy(object.position).add(this.toWorld(new THREE.Vector3(0, 0, 1)));
     plane.rotation.copy(object.rotation);
     this.scene.add(plane);
+  }
+
+  /** A screen-local offset as a world-space vector. */
+  private toWorld(local: THREE.Vector3): THREE.Vector3 {
+    return local.clone().applyQuaternion(this.quaternion);
   }
 
   // ---- glass layers ------------------------------------------------------
@@ -180,7 +192,7 @@ export default class MonitorScreen {
           opacity: layer.opacity, transparent: true,
         }),
       );
-      mesh.position.copy(this.position).add(new THREE.Vector3(0, 0, offset));
+      mesh.position.copy(this.position).add(this.toWorld(new THREE.Vector3(0, 0, offset)));
       mesh.rotation.copy(this.rotation);
       this.scene.add(mesh);
       maxOffset = Math.max(maxOffset, offset);
@@ -203,8 +215,8 @@ export default class MonitorScreen {
         new THREE.PlaneGeometry(s.size[0], s.size[1]),
         new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: 0x48493f }),
       );
-      mesh.position.copy(this.position).add(s.at);
-      mesh.rotation.copy(s.rot);
+      mesh.position.copy(this.position).add(this.toWorld(s.at));
+      mesh.quaternion.copy(this.quaternion).multiply(new THREE.Quaternion().setFromEuler(s.rot));
       this.scene.add(mesh);
     }
   }
@@ -216,7 +228,7 @@ export default class MonitorScreen {
         side: THREE.DoubleSide, color: 0x000000, transparent: true, blending: THREE.AdditiveBlending,
       }),
     );
-    this.dimmer.position.copy(this.position).add(new THREE.Vector3(0, 0, maxOffset - 5));
+    this.dimmer.position.copy(this.position).add(this.toWorld(new THREE.Vector3(0, 0, maxOffset - 5)));
     this.dimmer.rotation.copy(this.rotation);
     this.scene.add(this.dimmer);
   }
@@ -226,7 +238,7 @@ export default class MonitorScreen {
   /** Dimmer: darker the farther the camera is and the more it looks at the screen from the side. */
   update() {
     const view = this.camera.position.clone().sub(this.position).normalize();
-    const dot = view.dot(new THREE.Vector3(0, 0, 1));
+    const dot = view.dot(this.normal);
     const distance = this.camera.position.distanceTo(this.dimmer.position);
     const near = 1 / (distance / 10000);
     (this.dimmer.material as THREE.MeshBasicMaterial).opacity =
