@@ -13,7 +13,8 @@ mkdir -p "$DEST"
 
 fetch() { # fetch <name> <url>
     if [[ -s "$DEST/$1" ]]; then echo "skip  $1 (present)"; return; fi
-    curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$DEST/$1.part" "$2" && mv "$DEST/$1.part" "$DEST/$1"
+    curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$DEST/$1.part" "$2"
+    mv "$DEST/$1.part" "$DEST/$1"
     echo "fetch $1"
 }
 
@@ -25,11 +26,26 @@ if [[ -s "$DEST/scrabble.jsdos" ]]; then
     echo "skip  scrabble.jsdos (present)"
 else
     WORK="$(mktemp -d)"
-    curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$WORK/scrabble.zip" https://archive.org/download/SCRABBLE_VGA/SCRABBLE.zip
+    # archive.org/download redirects to one storage server; if that one is down, try the
+    # item's other servers, looked up from the metadata API rather than hard-coded.
+    if ! curl -fsSL --retry 3 --retry-delay 10 --retry-all-errors -o "$WORK/scrabble.zip" https://archive.org/download/SCRABBLE_VGA/SCRABBLE.zip; then
+        META="$(curl -fsSL --retry 3 --retry-delay 10 --retry-all-errors https://archive.org/metadata/SCRABBLE_VGA)"
+        ITEM_DIR="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["dir"])' <<<"$META")"
+        for SERVER in $(python3 -c 'import json,sys; print(*json.load(sys.stdin)["workable_servers"])' <<<"$META"); do
+            if curl -fsSL --retry 2 --retry-delay 5 --retry-all-errors -o "$WORK/scrabble.zip" "https://$SERVER$ITEM_DIR/SCRABBLE.zip"; then
+                echo "fetch scrabble.zip from $SERVER"
+                break
+            fi
+        done
+        unzip -tq "$WORK/scrabble.zip" >/dev/null  # fails the build if no server delivered a good zip
+    fi
     mkdir "$WORK/game"
     unzip -q "$WORK/scrabble.zip" -d "$WORK/game"
     mkdir "$WORK/game/.jsdos"
     printf '[autoexec]\nmount c .\nc:\nTSP.EXE\n' > "$WORK/game/.jsdos/dosbox.conf"
-    (cd "$WORK/game" && zip -qr "$DEST/scrabble.jsdos.part" . -x '.DS_Store') && mv "$DEST/scrabble.jsdos.part" "$DEST/scrabble.jsdos"
+    # The Pages build image has no zip; python3's zipfile CLI writes the same archive.
+    find "$WORK/game" -name .DS_Store -delete
+    (cd "$WORK/game" && python3 -m zipfile -c "$DEST/scrabble.jsdos.part" .jsdos *)
+    mv "$DEST/scrabble.jsdos.part" "$DEST/scrabble.jsdos"
     echo "build scrabble.jsdos"
 fi
