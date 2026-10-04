@@ -85,6 +85,11 @@ function start3D() {
       renderers.scene.add(new ShellModel(resources.gltf('shellModel'), BAKED_SCALE).object);
       const computer = resources.gltf('computerSetupModel').scene;
       computer.updateMatrixWorld(true);
+      // The baked Screen mesh is the same size and plane as MonitorScreen's occluder. From the far
+      // keyframes the depth buffer can't resolve the 1-unit gap, so the dark mesh z-fights through
+      // the OS as moving black stripes. The occluder already covers it, so hide it.
+      const bakedScreen = computer.getObjectByName('Screen');
+      if (bakedScreen) bakedScreen.visible = false;
       const anchor = computer.getObjectByName('ScreenAnchor');
       const placement = anchor
         ? {
