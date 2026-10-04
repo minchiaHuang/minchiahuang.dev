@@ -42,7 +42,6 @@ export const fit = (r: Rect, vp: Viewport): Rect => {
 const BASE_RECTS: Record<AppId, Rect> = {
   showcase: { x: 56, y: 24, w: 0, h: 0 }, // size filled in from the viewport
   fiveletters: { x: 300, y: 20, w: 600, h: 860 },
-  'about-site': { x: 260, y: 40, w: 720, h: 760 },
   credits: { x: 49, y: 49, w: 1100, h: 800 },
   scrabble: { x: 10, y: 10, w: 920, h: 750 },
   doom: { x: 10, y: 10, w: 980, h: 670 },

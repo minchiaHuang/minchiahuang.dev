@@ -53,13 +53,6 @@ export const icons = {
       '<rect x="5" y="9" width="3" height="1" fill="#000"/><rect x="9" y="9" width="2" height="1" fill="#000"/>' +
       '<rect x="5" y="11" width="2" height="1" fill="#000"/><rect x="8" y="11" width="3" height="1" fill="#000"/>',
   ),
-  aboutsite: svg(
-    // blueprint sheet: a flow of three boxes joined by arrows
-    '<rect x="2" y="1" width="12" height="14" fill="#000"/><rect x="3" y="2" width="10" height="12" fill="#2f6fd6"/>' +
-      '<rect x="5" y="3" width="6" height="2" fill="#fff"/><rect x="7" y="5" width="2" height="1" fill="#fff"/>' +
-      '<rect x="5" y="6" width="6" height="2" fill="#fff"/><rect x="7" y="8" width="2" height="1" fill="#fff"/>' +
-      '<rect x="5" y="9" width="6" height="2" fill="#fff"/><rect x="4" y="12" width="8" height="1" fill="#bcd4f6"/>',
-  ),
   resume: svg(
     // pixel printer: paper sheet on top, grey body with a slot and a green light
     '<rect x="4" y="1" width="8" height="6" fill="#000"/><rect x="5" y="2" width="6" height="5" fill="#fff"/>' +

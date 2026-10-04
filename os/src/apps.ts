@@ -1,6 +1,6 @@
 import type { IconName } from './icons';
 
-export type AppId = 'showcase' | 'oregon' | 'doom' | 'scrabble' | 'fiveletters' | 'about-site' | 'credits';
+export type AppId = 'showcase' | 'oregon' | 'doom' | 'scrabble' | 'fiveletters' | 'credits';
 
 export interface AppInfo {
   id: AppId;
@@ -20,8 +20,7 @@ export const APPS: AppInfo[] = [
   { id: 'doom', label: 'Doom', title: 'Doom', icon: 'doom', iconY: 226, windowTitle: 'Doom', status: 'Powered by JSDOS & DOSBox' },
   { id: 'scrabble', label: 'Scrabble', title: 'Scrabble', icon: 'scrabble', iconY: 328, windowTitle: 'Scrabble', status: 'Powered by JSDOS & DOSBox', titleColor: '#8a0f14' },
   { id: 'fiveletters', label: 'Five Letters', title: 'Five Letters', icon: 'fiveletters', iconY: 432, windowTitle: 'Five Letters', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
-  { id: 'about-site', label: 'How this\nsite was built', title: 'How this site was built', icon: 'aboutsite', iconY: 536, windowTitle: 'How this site was built', status: 'Source: github.com/minchiaHuang/minchiahuang.dev' },
-  { id: 'credits', label: 'Credits', title: 'Credits', icon: 'credits', iconY: 640, windowTitle: 'Credits', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
+  { id: 'credits', label: 'Credits', title: 'Credits', icon: 'credits', iconY: 536, windowTitle: 'Credits', status: '© Copyright 2026 Min-Chia (Tommy) Huang' },
 ];
 
 export const appById = (id: AppId) => APPS.find((a) => a.id === id)!;
