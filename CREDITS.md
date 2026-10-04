@@ -34,7 +34,12 @@ No files yet.
 
 ## Icons and images (app/public/textures/UI/, app/public/images/)
 
-No files yet.
+| Path | What | Source | Licence |
+|---|---|---|---|
+| `app/public/textures/UI/` | Volume, camera and mouse icons | Drawn for this project | Own work |
+| `app/public/images/favicon.svg` | Pixel CRT favicon | Drawn for this project | Own work |
+| `app/public/images/favicon-32.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
+| `app/public/images/apple-touch-icon.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
 
 ## Site files (app/public/)
 
