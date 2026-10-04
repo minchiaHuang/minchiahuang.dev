@@ -1,6 +1,6 @@
-// Two always-visible buttons after boot, so nobody has to find a key or explore the scene to
+// An always-visible button after boot, so nobody has to find a key or explore the scene to
 // reach the résumé.
-export type EntryTarget = 'resume' | 'about-site';
+export type EntryTarget = 'resume';
 
 export default class EntryButtons {
   readonly root = document.createElement('nav');
@@ -18,7 +18,6 @@ export default class EntryButtons {
       this.root.append(b);
     };
     add('Résumé', 'resume');
-    add('How this site was built', 'about-site');
     parent.append(this.root);
   }
 }
@@ -26,6 +25,6 @@ export default class EntryButtons {
 /** Ask the OS in the monitor iframe to open a window (protocol: os/src/remote.ts). */
 export function openInOS(target: EntryTarget): void {
   const frame = document.getElementById('computer-screen') as HTMLIFrameElement | null;
-  const msg = target === 'resume' ? { type: 'open', app: 'showcase', page: 'resume' } : { type: 'open', app: 'about-site' };
+  const msg = { type: 'open', app: 'showcase', page: target };
   frame?.contentWindow?.postMessage(msg, window.location.origin);
 }

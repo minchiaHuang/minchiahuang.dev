@@ -408,13 +408,6 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 /* DOS game: js-dos fills this black area */
 .dos { height: 100%; background: #000; }
 
-/* How this site was built: scrolling white page like Showcase */
-.as { height: 100%; overflow: auto; background: #fff; color: #000; font-family: var(--slab); padding: 28px 36px 40px; font-size: 18px; line-height: 24px; user-select: text; -webkit-font-smoothing: auto; }
-.as h1 { margin: 0 0 14px; font-size: 40px; line-height: 44px; -webkit-text-stroke: 1px #000; }
-.as h2 { margin: 28px 0 8px; font-size: 24px; line-height: 30px; letter-spacing: 1px; }
-.as a { color: #0000ee; }
-.as-flow { display: block; width: 100%; max-width: 620px; margin: 18px 0 0; font-family: var(--slab); }
-
 /* Phone-width standalone page: Showcase sits maximised, so give it a top bar instead of a side column. */
 @media (max-width: 768px) {
   .sc-inner { flex-direction: column; gap: 20px; padding: 20px 16px 32px; }
@@ -434,5 +427,4 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
   .sc-job { font-size: 24px; }
   .sc-home-links { margin-top: 36px; flex-wrap: wrap; justify-content: center; gap: 12px 24px; font-size: 16px; }
   .sc-resume { gap: 16px; }
-  .as { padding: 20px 16px 32px; font-size: 16px; }
 }

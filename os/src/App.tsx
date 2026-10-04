@@ -8,7 +8,6 @@ import FiveLetters from './components/FiveLetters';
 import Credits from './components/Credits';
 import DosGame from './components/DosGame';
 import Showcase from './components/Showcase';
-import AboutSite from './components/AboutSite';
 import Shutdown from './components/Shutdown';
 import { activeId, initialSystem, pressedId, reduce } from './windows';
 import type { Action } from './windows';
@@ -33,15 +32,12 @@ interface ContentProps {
   active: boolean;
   minimized: boolean;
   showcasePage: { page: ShowcasePage; n: number } | null;
-  onOpenAboutSite: () => void;
 }
 
-function Content({ id, active, minimized, showcasePage, onOpenAboutSite }: ContentProps) {
+function Content({ id, active, minimized, showcasePage }: ContentProps) {
   switch (id) {
     case 'showcase':
-      return <Showcase request={showcasePage ?? undefined} onOpenAboutSite={onOpenAboutSite} />;
-    case 'about-site':
-      return <AboutSite />;
+      return <Showcase request={showcasePage ?? undefined} />;
     case 'fiveletters':
       return <FiveLetters active={active} initial={shotGuesses} />;
     case 'credits':
@@ -84,16 +80,11 @@ export default function App() {
   const [showcasePage, setShowcasePage] = useState<{ page: ShowcasePage; n: number } | null>(null);
   const openTarget = useCallback(
     (t: OpenTarget) => {
-      if (t.app === 'about-site') {
-        send({ type: 'open', id: 'about-site' });
-        return;
-      }
       send({ type: 'open', id: 'showcase' });
       setShowcasePage((prev) => ({ page: t.page, n: (prev?.n ?? 0) + 1 })); // n re-triggers the same page
     },
     [send],
   );
-  const openAboutSite = useCallback(() => send({ type: 'open', id: 'about-site' }), [send]);
 
   // The outer page (postMessage) or the URL can ask for a window; see remote.ts.
   useEffect(() => {
@@ -151,7 +142,7 @@ export default function App() {
       <div className="win-layer">
         {sys.wins.map((w) => (
           <Window key={w.id} win={w} active={active === w.id} dispatch={send}>
-            <Content id={w.id} active={active === w.id} minimized={w.minimized} showcasePage={showcasePage} onOpenAboutSite={openAboutSite} />
+            <Content id={w.id} active={active === w.id} minimized={w.minimized} showcasePage={showcasePage} />
           </Window>
         ))}
       </div>

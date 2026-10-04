@@ -127,10 +127,9 @@ interface ShowcaseProps {
   // A page the outer page or the URL asked for. `n` changes on every request so asking for the page
   // that is already showing (after the visitor browsed away and back) still counts.
   request?: { page: Page; n: number };
-  onOpenAboutSite: () => void;
 }
 
-export default function Showcase({ request, onOpenAboutSite }: ShowcaseProps) {
+export default function Showcase({ request }: ShowcaseProps) {
   const [page, setPage] = useState<Page>(startPage);
   const [visited, setVisited] = useState<Set<Page>>(() => new Set());
   const go = (p: Page) => {
@@ -144,13 +143,13 @@ export default function Showcase({ request, onOpenAboutSite }: ShowcaseProps) {
   return (
     <GoCtx.Provider value={go}>
       <VisitedCtx.Provider value={visited}>
-        <Pages page={page} onOpenAboutSite={onOpenAboutSite} />
+        <Pages page={page} />
       </VisitedCtx.Provider>
     </GoCtx.Provider>
   );
 }
 
-function Pages({ page, onOpenAboutSite }: { page: Page; onOpenAboutSite: () => void }) {
+function Pages({ page }: { page: Page }) {
   const go = useContext(GoCtx);
   if (page === 'home') {
     return (
@@ -161,9 +160,6 @@ function Pages({ page, onOpenAboutSite }: { page: Page; onOpenAboutSite: () => v
         <div className="sc-home-buttons">
           <button type="button" className="sc-big-btn" onClick={() => go('resume')}>
             Résumé
-          </button>
-          <button type="button" className="sc-big-btn" onClick={onOpenAboutSite}>
-            How this site was built
           </button>
         </div>
         <nav className="sc-home-links">
