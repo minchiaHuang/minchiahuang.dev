@@ -178,7 +178,7 @@ export default class MonitorScreen {
     };
     const layers: Layer[] = [
       { texture: smudge, blending: THREE.AdditiveBlending, opacity: 0.12, offset: 24 },
-      { texture: shadow, blending: THREE.NormalBlending, opacity: 1, offset: 5 },
+      { texture: shadow, blending: THREE.NormalBlending, opacity: 0.6, offset: 5 },
       { material: this.noise, offset: 10 },
     ];
 
