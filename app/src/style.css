@@ -1,8 +1,8 @@
 * { margin: 0; padding: 0; }
 html, body { overflow: hidden; background: #000; height: 100%; }
 
-#css, #webgl, #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-#webgl, #overlay { pointer-events: none; }
+#css, #webgl { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+#webgl { pointer-events: none; }
 #css { cursor: pointer; }
 #ui {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;

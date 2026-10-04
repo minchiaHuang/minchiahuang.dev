@@ -121,7 +121,7 @@ function start3D() {
     audio?.update();
     const elapsed = performance.now() - t0;
     steam?.update(elapsed);
-    renderers.render(elapsed);
+    renderers.render();
     requestAnimationFrame(tick);
   };
   tick();
