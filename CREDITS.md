@@ -42,7 +42,7 @@ The screen noise and scanlines are a shader in `app/src/MonitorScreen.ts`; no vi
 | Path | What | Source | Licence |
 |---|---|---|---|
 | `app/public/textures/UI/` | Volume, camera and mouse icons | Drawn for this project | Own work |
-| `app/public/images/favicon.svg` | Pixel CRT favicon | Drawn for this project | Own work |
+| `app/public/images/favicon.svg` | iMac G3 side-view favicon (Bondi blue) | Drawn for this project; the screen face follows Apple's Happy Mac / Finder face, approved by the site owner on 2026-10-05 | Own drawing; face design © Apple Inc., used for identification on a non-commercial portfolio |
 | `app/public/images/favicon-32.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
 | `app/public/images/apple-touch-icon.png` | Rendered from `favicon.svg` by `tools/make-icons.sh` | Own work | Own work |
 | `app/public/images/og.jpg` | Social preview, a screenshot of this site | Own work | Own work |
