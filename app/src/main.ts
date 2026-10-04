@@ -10,6 +10,7 @@ import AudioManager from './AudioManager';
 import CoffeeSteam from './CoffeeSteam';
 import HelpPrompt from './HelpPrompt';
 import InfoOverlay from './InfoOverlay';
+import EntryButtons, { openInOS } from './EntryButtons';
 import { SHOT } from './shot';
 import { shouldUseFlatOS, readFlatEnv, goFlat } from './flatMode';
 
@@ -25,15 +26,13 @@ function onStart() {
 }
 
 function start3D() {
-  // Getting here means WebGL exists, so the BIOS never needs its no-WebGL error screen.
-  const loadingScreen = new LoadingScreen(ui, onStart, true);
+  const loadingScreen = new LoadingScreen(ui, onStart);
 
   /** Shot mode: no real loading. Feed the BIOS the same events a real load would send. */
   function fakeProgress(loaded: number) {
     const toLoad = sources.length;
     for (let i = 1; i <= loaded; i++) {
-      // The reference screenshots divide by toLoad - 1, giving 50% at 9 files.
-      const progress = loaded === toLoad ? i / toLoad : i / (toLoad - 1);
+      const progress = i / toLoad;
       loadingScreen.onProgress({ name: sources[i - 1].name, loaded: i, toLoad, progress });
     }
   }
@@ -45,10 +44,15 @@ function start3D() {
   let audio: AudioManager | undefined;
   const playTick = () => audio?.typeTick();
 
-  // The prompt and the info card mount once the BIOS is done. In shot mode only idle shows the prompt.
+  // The prompt, the info card and the entry buttons mount once the BIOS is done. In shot mode only idle shows the prompt.
   window.addEventListener('loadingScreenDone', () => {
     if (!SHOT || SHOT === 'idle') new HelpPrompt(ui, playTick);
     new InfoOverlay(uiInteractive, playTick);
+    new EntryButtons(uiInteractive, (target) => {
+      // Same event as hovering the monitor: Camera zooms in, and the prompt and info card react.
+      window.dispatchEvent(new CustomEvent('enterMonitor'));
+      openInOS(target);
+    });
   });
 
   if (SHOT === 'loading') {

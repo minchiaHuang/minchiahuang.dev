@@ -33,7 +33,7 @@ export default class Renderers {
   private noiseUniforms = { u_time: { value: 0 } };
 
   constructor() {
-    this.gl = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.gl = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.gl.setClearColor(0x000000, 0);
     this.place(this.gl.domElement);
     document.getElementById('webgl')!.appendChild(this.gl.domElement);
