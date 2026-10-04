@@ -1,0 +1,407 @@
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('./fonts/PixelifySans.ttf') format('truetype');
+  font-weight: 400 700;
+}
+@font-face {
+  font-family: 'VT323';
+  src: url('./fonts/VT323-Regular.ttf') format('truetype');
+}
+
+:root {
+  --desktop: #3e9697;
+  --chrome: #bbbfc3;
+  --active-title: #000e94;
+  --inactive-title: #7a7e82;
+  --hi: #ffffff;
+  --hi2: #dfe1e3;
+  --lo: #7a7e82;
+  --lo2: #0a0a0a;
+  --ui-font: 'Arial Narrow', Arial, sans-serif;
+  --pixel-font: 'Pixelify Sans', 'Arial Narrow', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--desktop);
+  font-family: var(--ui-font);
+  user-select: none;
+  -webkit-font-smoothing: none;
+}
+
+button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: default; }
+
+/* Win95-style bevels */
+.raised {
+  background: var(--chrome);
+  box-shadow: inset -1px -1px var(--lo2), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--hi2);
+}
+.raised.is-pressed {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo2), inset -2px -2px var(--hi2), inset 2px 2px var(--lo);
+}
+.sunken {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+}
+
+.screen { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+
+/* Desktop: everything above the 32px taskbar */
+.desktop { position: absolute; inset: 0 0 32px 0; background: var(--desktop); }
+
+.desk-icon {
+  position: absolute;
+  left: 7px;
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none; /* only the image and the label take clicks, see .desk-icon-img/.desk-icon-label */
+}
+.desk-icon-hit { display: flex; flex-direction: column; align-items: center; }
+.desk-icon-img { position: relative; width: 48px; height: 48px; pointer-events: auto; }
+.desk-icon-img img { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
+.desk-icon-tint {
+  position: absolute;
+  inset: 0;
+  display: none;
+  /* dark-blue dither: one blue pixel in every three, on a diagonal lattice */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='3' height='3' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='%230000a3'/%3E%3C/svg%3E") 0 0 / 3px 3px;
+  mask-size: 48px 48px;
+  -webkit-mask-size: 48px 48px;
+}
+.desk-icon-label {
+  padding-top: 2px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: auto;
+}
+.desk-icon-label span { display: inline-block; padding: 0 3px; outline: 1px dotted transparent; outline-offset: -1px; }
+.desk-icon-hit.is-selected .desk-icon-tint { display: block; }
+.desk-icon-label span.is-opened { outline-color: #e01010; }
+.desk-icon-hit.is-selected .desk-icon-label span { background: #0000a3; outline-color: #fff; }
+
+/* Taskbar */
+.taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32px;
+  background: var(--chrome);
+  box-shadow: inset 0 1px var(--hi2), inset 0 2px var(--hi);
+  z-index: 50;
+}
+.start-button {
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 71px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
+  font-family: var(--ui-font);
+  font-weight: 700;
+  font-size: 18px;
+}
+.start-button img { width: 16px; height: 16px; image-rendering: pixelated; }
+.start-button.is-pressed { padding-top: 2px; padding-left: 7px; }
+
+.task-buttons { position: absolute; left: 79px; right: 92px; top: 2px; display: flex; gap: 6px; }
+.task-button {
+  flex: 0 1 298px;
+  min-width: 0;
+  overflow: hidden;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
+  font-size: 14px;
+  text-align: left;
+}
+.task-button img { flex: none; width: 16px; height: 16px; image-rendering: pixelated; }
+.task-button span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.task-button.is-pressed {
+  padding-top: 2px;
+  background-color: var(--chrome);
+  background-image: repeating-conic-gradient(#fff 0 25%, transparent 0 50%);
+  background-size: 2px 2px;
+}
+
+.tray {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  width: 80px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 4px;
+}
+.tray img { width: 16px; height: 16px; image-rendering: pixelated; }
+.clock { font-size: 14px; }
+
+/* Start menu: opens upward from the Start button */
+.start-menu {
+  position: absolute;
+  left: 4px;
+  bottom: 28px; /* the box overhangs the taskbar by 4px and covers the top edge of the Start button */
+  width: 256px;
+  height: 250px;
+  display: flex;
+  padding: 2px;
+  z-index: 100;
+}
+.start-banner {
+  width: 40px;
+  background: #86898d;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+.start-banner span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--chrome);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 28px;
+  line-height: 1;
+}
+.start-items { flex: 1; display: flex; flex-direction: column; }
+.start-spacer { flex: 1; }
+.start-separator {
+  margin: 0;
+  border: 0;
+  height: 2px;
+  box-shadow: inset 0 1px #86898d, inset 0 -1px var(--hi);
+}
+.start-item {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  font-size: 14px;
+  text-align: left;
+}
+.start-item img { width: 32px; height: 32px; image-rendering: pixelated; }
+.start-item:hover, .start-item.is-on { background: var(--active-title); color: #fff; }
+
+/* Windows live above the desktop and below the taskbar; clicks on empty layer fall through to the desktop. */
+.win-layer { position: absolute; inset: 0 0 32px 0; overflow: hidden; z-index: 1; pointer-events: none; }
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding: 4px; /* 2px bevel + 2px gap, measured on the original in both normal and maximized state */
+  pointer-events: auto;
+  --title: var(--active-title);
+}
+.win-title {
+  flex: none;
+  height: 20px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px 0 4px;
+  background: var(--inactive-title);
+  color: var(--chrome);
+}
+.win.is-active .win-title { background: var(--title); color: #fff; }
+.win-title img { width: 16px; height: 16px; margin-right: 4px; image-rendering: pixelated; }
+.win-title-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--pixel-font);
+  font-weight: 700;
+  font-size: 14px;
+}
+.win-btn { width: 18px; height: 16px; display: flex; align-items: center; justify-content: center; flex: none; }
+.win-btn:active { box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo2), inset -2px -2px var(--hi2), inset 2px 2px var(--lo); }
+.win-btn.win-close { margin-left: 2px; }
+/* 2px sunken frame drawn over the content: grey and black on top/left, chrome and white on bottom/right */
+.win-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 2px;
+  overflow: hidden;
+  background: #fff;
+}
+.win-body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 1px 1px #86898d, inset 2px 2px #000, inset -1px -1px #fff, inset -2px -2px #c3c6ca;
+}
+.win-status {
+  flex: none;
+  height: 22px;
+  margin-top: 6px;
+  padding-top: 2px;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  font-size: 13px;
+}
+.win-pane { box-shadow: inset 1px 1px #86898d, inset -1px -1px #fff; }
+.win-status-text { flex: 1; min-width: 0; padding: 0 4px 0 6px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+.win-status-cell { width: 22px; flex: none; }
+.win-status-end { width: 26.2%; flex: none; position: relative; }
+.win-grip { position: absolute; right: 1px; bottom: 1px; width: 12px; height: 12px; cursor: nwse-resize; }
+.win-grip svg { display: block; width: 12px; height: 12px; }
+
+/* Shutdown: covers everything including the taskbar */
+.shutdown { position: absolute; inset: 0; z-index: 1000; background: #1d2e2f; overflow: hidden; cursor: default; }
+.shutdown pre {
+  position: absolute;
+  left: 64px;
+  top: 65px;
+  margin: 0;
+  color: #fff;
+  font-family: ui-monospace, Menlo, 'Courier New', monospace;
+  font-size: 18px;
+  line-height: 21px;
+  white-space: pre-wrap;
+  max-width: calc(100% - 128px);
+}
+
+/* My Showcase: scrolling white page inside the window */
+.sc {
+  height: 100%;
+  overflow: auto;
+  background: #fff;
+  color: #000;
+  font-family: var(--slab);
+  user-select: text;
+  -webkit-font-smoothing: auto;
+}
+.sc a { color: #0000ee; }
+.sc a:visited { color: #551a8b; }
+.sc a.is-visited, .sc-nav-item.is-current a { color: #551a8b; }
+/* Heavy display face: Rockwell Bold thickened with a text stroke stands in for the original's fat slab */
+.sc h1, .sc-name-big, .sc-side-name, .sc-card-big {
+  font-family: var(--slab);
+  font-weight: 700;
+  -webkit-text-stroke: 1.6px #000;
+  margin: 0;
+}
+.sc-home { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; }
+.sc-name-big { font-size: 64px; line-height: 1.1; text-align: center; }
+.sc-job { font-family: var(--pixel-font); font-weight: 700; font-size: 32px; margin-top: 4px; }
+.sc-home-links { margin-top: 90px; display: flex; gap: 32px; font-weight: 700; font-size: 20px; }
+
+.sc-inner { display: flex; gap: 48px; padding: 56px 48px 48px; }
+.sc-side { flex: none; width: 220px; }
+.sc-side-name { margin-top: 4px; font-size: 38px; line-height: 34px; white-space: nowrap; -webkit-text-stroke: 1.2px #000; }
+.sc-side-sub { margin-top: 14px; font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: 1px; }
+.sc-side-nav { margin-top: 61px; font-weight: 700; font-size: 17px; }
+.sc-nav-item { height: 25px; line-height: 25px; margin-bottom: 30px; }
+.sc-nav-item.has-children { margin-bottom: 17px; }
+.sc-nav-children { margin: 0 0 13px 32px; display: flow-root; }
+.sc-nav-child { height: 19px; line-height: 19px; font-size: 17px; margin-bottom: 12px; }
+/* Current page: a small hollow ring sits inline before the label */
+.sc-nav-item.is-current::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  border: 2px solid #551a8b;
+  border-radius: 50%;
+  box-sizing: content-box;
+}
+.sc-main { flex: none; width: 512px; font-size: 18px; line-height: 23px; }
+.sc-main h1 { margin-top: 6px; font-size: 60px; line-height: 60px; }
+.sc-main h2 { margin: 4px 0 16px; font-family: var(--slab); font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: 1px; }
+.sc-main h3 { margin: 22px 0 6px; font-size: 24px; line-height: 30px; font-family: var(--slab); font-weight: 700; letter-spacing: 1px; }
+.sc-main p { margin: 0 0 18px; text-align: justify; }
+.sc-main img { max-width: 100%; display: block; margin: 8px 0 12px; border: 1px solid #000; }
+.sc-resume + .sc-proj { border-top: 0; margin-top: 0; }
+.sc-art { max-width: 420px !important; }
+.sc-resume { display: flex; align-items: center; gap: 30px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 12px 8px 12px 12px; margin: 18px 0; }
+.sc-resume strong { font-size: 24px; line-height: 28px; letter-spacing: 1px; }
+.sc-main img.sc-resume-icon { flex: none; width: 56px; height: 56px; margin: 0; border: 0; image-rendering: pixelated; }
+.sc-job-meta { font-style: italic; margin-bottom: 4px; }
+.sc-job-block ul { margin: 4px 0 12px; padding-left: 22px; }
+.sc-proj { border-top: 1px solid #000; margin-top: 18px; padding-top: 4px; }
+.sc-card { display: flex; align-items: center; gap: 30px; width: 512px; max-width: 100%; height: 145px; border: 1px solid #000; padding: 0 38px; margin-bottom: 24px; text-decoration: none; color: #000 !important; text-align: left; }
+.sc-main p + .sc-card { margin-top: -4px; }
+.sc-card-text { display: block; min-width: 0; }
+.sc-card-big { display: block; font-size: 45px; line-height: 46px; -webkit-text-stroke: 1.2px #000; }
+.sc-card-small { display: block; font-weight: 700; font-size: 24px; line-height: 28px; letter-spacing: 1px; text-transform: uppercase; }
+.sc-contact-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+.sc-contact-head h1 { margin: 0; }
+.sc-social { display: flex; gap: 10px; }
+.sc-social a { display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #333; background: #fff; }
+.sc-social svg { width: 36px; height: 36px; display: block; }
+
+.sc-main img.sc-card-icon { flex: none; display: block; width: 64px; height: 64px; margin: 0; border: 0; image-rendering: pixelated; }
+
+/* FiveLetters */
+:root { --slab: 'Rockwell', 'American Typewriter', 'Roboto Slab', 'Courier New', Georgia, serif; }
+.hn { height: 100%; overflow: hidden; background: #fff; color: #000; display: flex; flex-direction: column; align-items: center; font-family: var(--slab); padding: 32px 0 0; }
+.hn h1 { margin: 0; height: 40px; line-height: 40px; font-size: 36px; font-weight: 700; font-family: var(--slab); -webkit-text-stroke: 0.6px #000; }
+.hn-sub { height: 24px; line-height: 24px; font-size: 19px; font-family: var(--slab); }
+.hn-notice { height: 22px; line-height: 22px; font-size: 16px; color: #8a0f14; }
+.hn-grid { margin-top: 19px; display: flex; flex-direction: column; gap: 8px; }
+.hn-row { display: flex; gap: 8px; }
+.hn-tile {
+  width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--slab);
+  font-size: 24px; font-weight: 700; padding-top: 10px; background: #fff; border: 2px solid #808080;
+}
+.hn-filled { background: #fff; }
+.hn-hit { background: #85ec8c; }
+.hn-miss { background: #e8e8e8; }
+.hn-near { background: #f1d34e; }
+.hn-keys { margin-top: 47px; display: flex; flex-direction: column; gap: 9px; align-items: center; }
+.hn-keyrow { display: flex; gap: 10px; }
+.hn-key { width: 40px; height: 54px; font-size: 20px; font-weight: 400; font-family: var(--slab); background: #e9e9e9; border: 1px solid #808080; box-shadow: 1px 1px 0 #2b2b2b; }
+.hn-key.hn-wide { width: 60px; font-size: 20px; }
+.hn-key.hn-hit { background: #85ec8c; }
+.hn-key.hn-near { background: #f1d34e; }
+.hn-key.hn-miss { background: #808080; color: #000; }
+.hn-key:active { background: #d0d0d0; }
+.hn-end { justify-content: center; text-align: center; gap: 22px; padding-top: 0; }
+.hn-end h1 { font-size: 48px; margin: 0; height: auto; line-height: 1.1; }
+.hn-end p { margin: 0; font-size: 18px; font-family: var(--slab); }
+.hn-big { background: #85ec8c; }
+.hn-restart { width: 142px; height: 30px; font-size: 15px; font-family: var(--ui-font); }
+
+/* Credits */
+.cr { height: 100%; overflow: hidden; background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; font-family: var(--slab); cursor: default; position: relative; }
+.cr-head { width: 100%; padding-top: 69px; display: flex; flex-direction: column; align-items: center; }
+.cr-page { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 160px; }
+.cr-page.is-fade { animation: cr-in 0.4s ease-in 0.1s both; }
+.cr h1 { margin: 0; font-family: var(--slab); font-weight: 700; font-size: 32px; line-height: 38px; -webkit-text-stroke: 0.6px #fff; }
+.cr-sub { font-size: 18px; line-height: 24px; }
+.cr-section { width: 600px; margin-bottom: 40px; }
+.cr h2 { margin: 0 0 31px; font-family: var(--slab); font-weight: 700; font-size: 26px; line-height: 30px; text-align: center; }
+.cr-row { display: flex; justify-content: space-between; gap: 24px; font-size: 18px; line-height: 23px; }
+.cr-row span:last-child { text-align: right; }
+.cr-section p { margin: 14px 0 0; font-size: 14px; line-height: 1.5; text-align: center; color: #bbb; }
+.cr-foot { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; }
+.cr-prompt { position: absolute; left: 0; right: 0; bottom: 111px; font-size: 18px; line-height: 24px; }
+.cr-dots { position: absolute; left: 0; right: 0; bottom: 66px; height: 22px; line-height: 22px; font-size: 18px; }
+@keyframes cr-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* DOS game: js-dos fills this black area */
+.dos { height: 100%; background: #000; }

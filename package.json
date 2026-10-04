@@ -1,0 +1,10 @@
+{
+  "name": "minchiahuang.dev",
+  "private": true,
+  "type": "module",
+  "description": "Min-Chia (Tommy) Huang's interactive portfolio.",
+  "scripts": {
+    "verify": "bash bin/verify.sh",
+    "test": "node --test"
+  }
+}
