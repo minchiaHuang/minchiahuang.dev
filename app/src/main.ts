@@ -11,13 +11,12 @@ import CoffeeSteam from './CoffeeSteam';
 import HelpPrompt from './HelpPrompt';
 import InfoOverlay from './InfoOverlay';
 import { SHOT } from './shot';
+import { shouldUseFlatOS, readFlatEnv, goFlat } from './flatMode';
 
 const BAKED_SCALE = 900;
 
 const ui = document.getElementById('ui')!;
-const webglOk = hasWebGL();
 const uiInteractive = document.getElementById('ui-interactive')!;
-const loadingScreen = new LoadingScreen(ui, onStart, webglOk);
 
 function onStart() {
   // The loading overlay no longer needs to catch clicks; Camera flies to idle on this event.
@@ -25,17 +24,20 @@ function onStart() {
   window.dispatchEvent(new CustomEvent('loadingScreenDone'));
 }
 
-/** Shot mode: no real loading. Feed the BIOS the same events a real load would send. */
-function fakeProgress(loaded: number) {
-  const toLoad = sources.length;
-  for (let i = 1; i <= loaded; i++) {
-    // The reference screenshots divide by toLoad - 1, giving 50% at 9 files.
-    const progress = loaded === toLoad ? i / toLoad : i / (toLoad - 1);
-    loadingScreen.onProgress({ name: sources[i - 1].name, loaded: i, toLoad, progress });
-  }
-}
+function start3D() {
+  // Getting here means WebGL exists, so the BIOS never needs its no-WebGL error screen.
+  const loadingScreen = new LoadingScreen(ui, onStart, true);
 
-if (webglOk) {
+  /** Shot mode: no real loading. Feed the BIOS the same events a real load would send. */
+  function fakeProgress(loaded: number) {
+    const toLoad = sources.length;
+    for (let i = 1; i <= loaded; i++) {
+      // The reference screenshots divide by toLoad - 1, giving 50% at 9 files.
+      const progress = loaded === toLoad ? i / toLoad : i / (toLoad - 1);
+      loadingScreen.onProgress({ name: sources[i - 1].name, loaded: i, toLoad, progress });
+    }
+  }
+
   const renderers = new Renderers();
   const camera = new Camera(renderers.camera, renderers.gl.domElement);
   let monitor: MonitorScreen | undefined;
@@ -59,7 +61,12 @@ if (webglOk) {
     const resources = new Resources(
       toLoad,
       (info) => loadingScreen.onProgress(info),
-      (name, err) => { console.error('load failed', name, err); loadingScreen.onError(name); },
+      (name, err) => {
+        console.error('load failed', name, err);
+        // A missing model leaves nothing to show: fall back to the OS. A missing sound or texture is not fatal.
+        if (sources.find((s) => s.name === name)?.type === 'gltfModel') goFlat();
+        else loadingScreen.onError(name);
+      },
     );
     resources.start().then(() => {
       const models: [string, string][] = [
@@ -99,4 +106,12 @@ if (webglOk) {
     requestAnimationFrame(tick);
   };
   tick();
+}
+
+// Phones, no WebGL, reduced motion: straight to the OS, before any 3D file is requested.
+// Shot mode always renders the scene (screenshots are taken at desktop size).
+if (!SHOT && shouldUseFlatOS(readFlatEnv(hasWebGL))) {
+  goFlat();
+} else {
+  start3D();
 }
