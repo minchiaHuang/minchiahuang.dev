@@ -13,6 +13,9 @@ export interface Project {
   slug: string; // folder name in Projects and in the Terminal
   name: string;
   meta: string;
+  tag: string; // subtitle on the Showcase index card
+  hackathon?: boolean; // a tag, not a category: Tommy HD > Hackathons filters Projects by it
+  award?: string; // short label under the folder name in Projects
   blurb: string;
   image?: string; // file in public/showcase/
   links: { label: string; href: string }[];
@@ -23,6 +26,9 @@ export const PROJECTS: Project[] = [
     slug: 'cookpilot',
     name: 'CookPilot',
     meta: 'iOS | ICON x Lyra Hackathon, 1st place | 2026',
+    tag: '1st place · ICON x Lyra Hackathon',
+    hackathon: true,
+    award: '1st place',
     blurb:
       'Look at your fridge through Ray-Ban Meta glasses and it tells you what you can cook tonight, read into your ear step by step. I owned the iOS build end to end: SwiftUI, the step state machine, voice control and the model service layer.',
     image: 'cookpilot-home.png',
@@ -32,6 +38,7 @@ export const PROJECTS: Project[] = [
     slug: 'visual-eyes',
     name: 'Visual Eyes',
     meta: 'visionOS | Apple Foundation Program | 2026',
+    tag: 'Apple Foundation Program',
     blurb:
       'Asks who you want to become, then builds a five-room walkable museum of that future. A two-stage pipeline produces a structured story and images, composited onto named wall frames in a USDZ gallery. Four-person team, I built the app.',
     image: 've-gallery.jpg',
@@ -43,7 +50,10 @@ export const PROJECTS: Project[] = [
   {
     slug: 'learnguard',
     name: 'LearnGuard',
-    meta: 'MCP | OpenAI Codex Hackathon',
+    meta: 'MCP | OpenAI Codex Hackathon | 2026',
+    tag: 'Hackathon · OpenAI Codex',
+    hackathon: true,
+    award: 'Hackathon',
     blurb:
       'A gate that makes a coding assistant earn its permissions. The red-team suite blocks 8 of 8 attacks while letting legitimate actions through.',
     links: [{ label: 'GitHub', href: 'https://github.com/minchiaHuang/LearnGuard' }],
@@ -51,7 +61,10 @@ export const PROJECTS: Project[] = [
   {
     slug: 'vaxagent',
     name: 'VaxAgent',
-    meta: 'FastAPI | HSIL, Harvard T.H. Chan',
+    meta: 'FastAPI | HSIL Hackathon, Harvard (Sydney) | 2026',
+    tag: 'Hackathon · HSIL Harvard',
+    hackathon: true,
+    award: 'Hackathon',
     blurb:
       'Tumour mutation data in, ranked neoantigen candidates out, with every step traceable back to the file it came from.',
     links: [{ label: 'GitHub', href: 'https://github.com/minchiaHuang/VaxAgent' }],
@@ -60,6 +73,9 @@ export const PROJECTS: Project[] = [
     slug: 'datathon-2026',
     name: 'Accenture x SUBAA Datathon 2026',
     meta: 'Python | Finalist, top 4 of 40 teams',
+    tag: 'Top 4 of 40 · Accenture x SUBAA',
+    hackathon: true,
+    award: 'Top 4 of 40',
     blurb:
       'Analysed 105k+ records across four HR datasets and built a reusable matplotlib style module so new figures matched the existing Excel charts. Traced all 24 cited figures back to the raw CSVs before the final.',
     links: [],

@@ -51,6 +51,14 @@ const startPage = (): Page => {
   return (SHOWCASE_PAGES as readonly string[]).includes(m?.[1] ?? '') ? (m![1] as Page) : 'home';
 };
 
+// Scrolls the Showcase's own scroll container (.sc) to an element of the page. Plain #hash links would be
+// swallowed by Link and could scroll the outer page instead.
+const scrollToId = (id: string) => {
+  const el = document.getElementById(id);
+  const box = el?.closest('.sc');
+  if (el && box) box.scrollTo({ top: el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 16, behavior: 'smooth' });
+};
+
 const GoCtx = createContext<(p: Page) => void>(() => {});
 const VisitedCtx = createContext<Set<Page>>(new Set());
 
@@ -239,9 +247,21 @@ function renderPage(page: Page) {
         <>
           <h1>Projects</h1>
           <h2>Software</h2>
-          <p>Some of the software I have shipped, each under a deadline with other people in the room.</p>
+          <p id="sc-projects-index">Click a project to jump to it.</p>
+          <div className="sc-cards">
+            {PROJECTS.map((p) => (
+              <button key={p.slug} type="button" className="sc-card" onClick={() => scrollToId(`sc-proj-${p.slug}`)}>
+                {/* A 56x56 thumbnail goes here later: <img src={asset(p.image)} /> when p.image is set. */}
+                <span className="sc-card-text">
+                  <span className="sc-card-name">{p.name}</span>
+                  <span className="sc-card-tag">{p.tag}</span>
+                </span>
+                <span className="sc-card-go" aria-hidden="true">›</span>
+              </button>
+            ))}
+          </div>
           {PROJECTS.map((p) => (
-            <section key={p.name} className="sc-proj">
+            <section key={p.name} id={`sc-proj-${p.slug}`} className="sc-proj">
               <h3>{p.name}</h3>
               <div className="sc-job-meta">{p.meta}</div>
               <p>{p.blurb}</p>
@@ -256,6 +276,17 @@ function renderPage(page: Page) {
                   ))}
                 </p>
               )}
+              <p className="sc-back">
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToId('sc-projects-index');
+                  }}
+                >
+                  ↑︎ Back to projects
+                </a>
+              </p>
             </section>
           ))}
         </>
