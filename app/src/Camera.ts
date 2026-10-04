@@ -30,6 +30,12 @@ const KEYS: Record<CameraKey, Keyframe> = {
 
 const SMOOTH_OUT = bezier(0.13, 0.99, 0, 1);
 
+// The iMac's screen is ~70% the old CRT's height, so desk -> monitor zooms ~4.7x where the
+// reference zoomed ~2.6x. The reference's 2000/1000 ms felt rushed; these keep a similar zoom rate.
+const ENTER_MONITOR_MS = 3200;
+const LEAVE_MONITOR_MS = 1600;
+const CLICK_MS = 1400; // idle <-> desk
+
 /**
  * Five keyframes, tweened between. Every keyframe has its own live `position` / `focalPoint`
  * that update() moves each frame (idle drift, desk parallax, monitor z); transitions tween
@@ -105,8 +111,8 @@ export default class Camera {
     e.preventDefault();
     if ((e.target as HTMLElement | null)?.closest('#prevent-click')) return;
     const at = (k: CameraKey) => this.current === k || this.target === k;
-    if (at('idle')) this.transition('desk');
-    else if (at('desk')) this.transition('idle');
+    if (at('idle')) this.transition('desk', CLICK_MS);
+    else if (at('desk')) this.transition('idle', CLICK_MS);
   }
 
   private onMouseUp() {
@@ -140,7 +146,7 @@ export default class Camera {
 
   /** Mouse is over the monitor iframe. */
   enterMonitor() {
-    this.transition('monitor', 2000, SMOOTH_OUT);
+    this.transition('monitor', ENTER_MONITOR_MS, SMOOTH_OUT);
   }
 
   /** Mouse left the monitor iframe. A held button delays the exit until it is released. */
@@ -150,7 +156,7 @@ export default class Camera {
   }
 
   private leftMonitor() {
-    this.transition('desk');
+    this.transition('desk', LEAVE_MONITOR_MS);
   }
 
   setFreeCam(on: boolean) {
