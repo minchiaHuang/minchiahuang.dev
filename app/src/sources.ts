@@ -6,7 +6,7 @@ export interface Source {
   path: string;
 }
 
-// Same 19 files, same order as the reference site, so the BIOS list reads the same.
+// Every file the outer scene loads, in the order the BIOS screen lists them.
 const sources: Source[] = [
   { name: 'computerSetupModel', type: 'gltfModel', path: 'models/Computer/computer_setup.glb' },
   { name: 'computerSetupTexture', type: 'texture', path: 'models/Computer/baked_computer.jpg' },
@@ -14,8 +14,8 @@ const sources: Source[] = [
   { name: 'environmentTexture', type: 'texture', path: 'models/World/baked_environment.jpg' },
   { name: 'decorModel', type: 'gltfModel', path: 'models/Decor/decor.glb' },
   { name: 'decorTexture', type: 'texture', path: 'models/Decor/baked_decor_modified.jpg' },
-  { name: 'monitorSmudgeTexture', type: 'texture', path: 'textures/monitor/layers/compressed/smudges.jpg' },
-  { name: 'monitorShadowTexture', type: 'texture', path: 'textures/monitor/layers/compressed/shadow-compressed.png' },
+  { name: 'monitorSmudgeTexture', type: 'texture', path: 'textures/monitor/smudges.png' },
+  { name: 'monitorShadowTexture', type: 'texture', path: 'textures/monitor/shadow.png' },
   { name: 'mouseDown', type: 'audio', path: 'audio/mouse/mouse_down.mp3' },
   { name: 'mouseUp', type: 'audio', path: 'audio/mouse/mouse_up.mp3' },
   { name: 'keyboardKeydown1', type: 'audio', path: 'audio/keyboard/key_1.mp3' },
