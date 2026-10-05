@@ -1,5 +1,5 @@
-import { useRef, type PointerEvent, type ReactNode } from 'react';
-import { DPAD, KBD, LAYOUTS, textToKeys, type GameId, type SendKey, type VKey } from './keyLayouts';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { DPAD, KBD, keyChanges, LAYOUTS, stickKeys, textToKeys, type GameId, type SendKey, type StickKeys, type VKey } from './keyLayouts';
 
 interface Props {
   game: GameId;
@@ -41,6 +41,63 @@ function Key({ k, send, className = '', children }: { k: VKey; send: SendKey | n
     >
       {children}
     </button>
+  );
+}
+
+// A round stick (Doom has two: move and aim). The knob follows the finger; the direction of the drag from the centre
+// (keyLayouts.ts stickKeys) decides which keys are held. Each stick tracks its own pointer, so both work at once with
+// two fingers. Everything it holds is released on lift, cancel, lost capture and unmount, so no key sticks.
+function Stick({ pad, send, label, className }: { pad: StickKeys; send: SendKey | null; label: string; className: string }) {
+  const base = useRef<HTMLDivElement>(null);
+  const pointer = useRef<number | null>(null);
+  const held = useRef<number[]>([]);
+  const sendRef = useRef(send);
+  sendRef.current = send;
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const apply = (next: number[]) => {
+    const { press, release } = keyChanges(held.current, next);
+    for (const c of release) sendRef.current?.(c, false);
+    for (const c of press) sendRef.current?.(c, true);
+    held.current = next;
+  };
+  const let_go = () => {
+    pointer.current = null;
+    apply([]);
+    setKnob({ x: 0, y: 0 });
+  };
+  useEffect(() => () => apply([]), []); // eslint-disable-line react-hooks/exhaustive-deps -- apply only touches refs
+  const drag = (e: PointerEvent<HTMLDivElement>) => {
+    if (pointer.current !== e.pointerId || !base.current) return;
+    const r = base.current.getBoundingClientRect();
+    const radius = r.width / 2;
+    const dx = e.clientX - (r.left + radius);
+    const dy = e.clientY - (r.top + radius);
+    const len = Math.hypot(dx, dy) || 1;
+    const reach = Math.min(len, radius * 0.6); // the knob stays inside the ring
+    setKnob({ x: (dx / len) * reach, y: (dy / len) * reach });
+    apply(stickKeys(pad, dx, dy, radius));
+  };
+  return (
+    <div
+      ref={base}
+      role="group"
+      aria-label={label}
+      className={`m-vk-stick ${className}${send ? '' : ' is-disabled'}`}
+      onPointerDown={(e) => {
+        if (!send || pointer.current !== null) return;
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        pointer.current = e.pointerId;
+        drag(e);
+      }}
+      onPointerMove={drag}
+      onPointerUp={(e) => pointer.current === e.pointerId && let_go()}
+      onPointerCancel={(e) => pointer.current === e.pointerId && let_go()}
+      onLostPointerCapture={(e) => pointer.current === e.pointerId && let_go()}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div className="m-vk-knob" style={{ transform: `translate(${knob.x}px, ${knob.y}px)` }} />
+    </div>
   );
 }
 
@@ -102,10 +159,27 @@ function Abc({ send }: { send: SendKey | null }) {
   );
 }
 
-// The on-screen keys for one DOS game (keyLayouts.ts): the D-pad on the left (games that have one), the action keys
-// on the right. MobileGame places the two halves; mobile.css arranges them for upright and sideways.
+// The on-screen keys for one DOS game (keyLayouts.ts): the D-pad on the left (games that have one) or Doom's two sticks,
+// and the action keys. MobileGame places the parts; mobile.css arranges them for upright and sideways.
 export default function VirtualKeys({ game, send }: Props) {
   const layout = LAYOUTS[game];
+  const key = (k: VKey) => (
+    <Key key={k.label} k={k} send={send}>
+      {k.label}
+    </Key>
+  );
+  if (layout.sticks) {
+    return (
+      <>
+        <Stick pad={layout.sticks.move} send={send} label="Move stick" className="m-vk-move" />
+        <Stick pad={layout.sticks.aim} send={send} label="Aim stick" className="m-vk-aim" />
+        <div className="m-vk-keys">
+          <div className="m-vk-act">{layout.keys.filter((k) => k.act).map(key)}</div>
+          <div className="m-vk-sys">{layout.keys.filter((k) => !k.act).map(key)}</div>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       {layout.dpad && (
@@ -120,11 +194,7 @@ export default function VirtualKeys({ game, send }: Props) {
         </div>
       )}
       <div className="m-vk-right">
-        {layout.keys.map((k) => (
-          <Key key={k.label} k={k} send={send}>
-            {k.label}
-          </Key>
-        ))}
+        {layout.keys.map(key)}
         {layout.abc && <Abc send={send} />}
       </div>
     </>

@@ -42,6 +42,8 @@ test('every on-screen key sends a code that is in the js-dos table', { skip }, (
   const codes = new Set(readKbdTable().values());
   for (const [game, layout] of Object.entries(LAYOUTS)) {
     for (const k of [...layout.keys, ...(layout.dpad ? DPAD : [])]) assert.ok(codes.has(k.code), `${game} ${k.label}: ${k.code}`);
+    for (const pad of layout.sticks ? Object.values(layout.sticks) : [])
+      for (const code of Object.values(pad)) assert.ok(codes.has(code), `${game} stick: ${code}`);
   }
 });
 
@@ -160,7 +162,7 @@ const keysAt = (dx: number, dy: number) => keyLayouts.stickKeys(PAD, dx, dy, R).
 test('stick: a small push (inside the dead zone) presses nothing', () => {
   assert.deepEqual(keysAt(0, 0), []);
   assert.deepEqual(keysAt(0, -0.19 * R), []);
-  assert.deepEqual(keysAt(10, 10), []); // 14 px < 20% of 70
+  assert.deepEqual(keysAt(9, 9), []); // 12.7 px < 20% of 70 = 14
   assert.deepEqual(keysAt(0, -0.21 * R), [PAD.up]);
 });
 

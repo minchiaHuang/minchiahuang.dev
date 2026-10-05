@@ -8,7 +8,7 @@ import { LAYOUTS, type GameId, type SendKey } from './keyLayouts';
 export default function MobileGame({ id }: { id: GameId }) {
   const [send, setSend] = useState<SendKey | null>(null);
   return (
-    <div className={`m-game${LAYOUTS[id].dpad ? ' has-dpad' : ''}`}>
+    <div className={`m-game${LAYOUTS[id].dpad ? ' has-dpad' : ''}${LAYOUTS[id].sticks ? ' has-sticks' : ''}`}>
       <div className="m-game-screen">
         {/* setSend(() => fn): a function passed straight to setSend would be called as an updater. */}
         <DosGame id={id} onReady={(fn) => setSend(() => fn)} />
