@@ -15,6 +15,11 @@ export const KBD = {
   down: 264,
   up: 265,
   leftctrl: 341,
+  // Doom's gameplay keys (its DEFAULT.CFG binds W/A/S/D to move and strafe)
+  a: 65,
+  d: 68,
+  s: 83,
+  w: 87,
 } as const;
 // a–z are 65–90 and 0–9 are 48–57 in js-dos, the same as their ASCII upper case letters and digits.
 const LETTER_A = 65;
@@ -23,11 +28,22 @@ const DIGIT_0 = 48;
 export interface VKey {
   label: string;
   code: number;
-  wide?: boolean; // takes two columns (Space, FIRE)
+  wide?: boolean; // takes two columns (Space)
+  act?: boolean; // sits with the aim stick (FIRE, USE) when the layout has two sticks
+}
+
+// The keys one on-screen stick presses, by direction. A missing direction does nothing: Doom's aim stick turns but
+// cannot look up or down.
+export interface StickKeys {
+  up?: number;
+  down?: number;
+  left?: number;
+  right?: number;
 }
 
 export interface GameLayout {
   dpad: boolean; // arrow keys on the left, held down to repeat
+  sticks: { move: StickKeys; aim: StickKeys } | null; // twin sticks (Doom), in place of the D-pad
   keys: VKey[]; // the action keys on the right
   abc: boolean; // an ABC key that brings up the phone keyboard for typing names
 }
@@ -38,17 +54,26 @@ const digit = (n: number): VKey => ({ label: String(n), code: DIGIT_0 + n });
 
 export const LAYOUTS: Record<GameId, GameLayout> = {
   doom: {
-    dpad: true,
+    // Doom's gameplay keys are not the arrows (DEFAULT.CFG: W/S walk, A/D strafe, the arrows turn), so an arrow D-pad
+    // only turns. The menu is hard-wired to the arrows, hence the two Menu keys.
+    dpad: false,
+    sticks: {
+      move: { up: KBD.w, down: KBD.s, left: KBD.a, right: KBD.d },
+      aim: { left: KBD.left, right: KBD.right },
+    },
     keys: [
-      { label: 'FIRE', code: KBD.leftctrl, wide: true },
-      { label: 'USE', code: KBD.space },
+      { label: 'FIRE', code: KBD.leftctrl, act: true },
+      { label: 'USE', code: KBD.space, act: true },
       { label: 'Enter', code: KBD.enter },
       { label: 'Esc', code: KBD.esc },
+      { label: 'Menu ▲', code: KBD.up },
+      { label: 'Menu ▼', code: KBD.down },
     ],
     abc: false,
   },
   oregon: {
     dpad: false,
+    sticks: null,
     keys: [
       ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(digit),
       { label: 'Enter', code: KBD.enter },
@@ -59,6 +84,7 @@ export const LAYOUTS: Record<GameId, GameLayout> = {
   },
   scrabble: {
     dpad: true,
+    sticks: null,
     keys: [
       { label: 'Enter', code: KBD.enter },
       { label: 'Esc', code: KBD.esc },
@@ -73,6 +99,33 @@ export const DPAD: VKey[] = [
   { label: 'Right', code: KBD.right },
   { label: 'Down', code: KBD.down },
 ];
+
+// Inside this fraction of the stick's radius nothing is pressed, so a resting thumb does not walk.
+const DEAD_ZONE = 0.2;
+const SECTOR_DIRS: (keyof StickKeys)[][] = [
+  ['right'],
+  ['down', 'right'],
+  ['down'],
+  ['down', 'left'],
+  ['left'],
+  ['up', 'left'],
+  ['up'],
+  ['up', 'right'],
+];
+
+// The keys a drag of (dx, dy) from the stick's centre presses (screen coordinates, y grows down), in 8 directions:
+// each is a 45-degree sector, and a diagonal presses two keys. A direction the pad has no key for presses nothing.
+export function stickKeys(pad: StickKeys, dx: number, dy: number, radius: number): number[] {
+  if (Math.hypot(dx, dy) < DEAD_ZONE * radius) return [];
+  const sector = (Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8;
+  return SECTOR_DIRS[sector].map((d) => pad[d]).filter((c): c is number => c !== undefined);
+}
+
+// Going from the keys held now to the keys wanted: press only what is new and release only what stopped, so a held
+// direction is not restarted when the thumb slides to a diagonal.
+export function keyChanges(prev: number[], next: number[]): { press: number[]; release: number[] } {
+  return { press: next.filter((c) => !prev.includes(c)), release: prev.filter((c) => !next.includes(c)) };
+}
 
 // One typed character as a KBD code, or null for one the games cannot take. Upper and lower case are the same key:
 // DOS games of this age read the key, not the case.
