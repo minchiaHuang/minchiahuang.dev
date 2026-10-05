@@ -7,7 +7,6 @@
 .m-shell .m-main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
 .m-shell .m-pane { position: absolute; top: 0; bottom: 0; left: env(safe-area-inset-left); right: env(safe-area-inset-right); overflow: hidden; }
 .m-shell .m-pane.is-app { background: #fff; }
-.m-shell .m-game { height: 100%; background: #000; }
 
 /* The T badge: the About card's icon and About This Site on the desktop grid */
 .m-shell .m-t-badge {
@@ -216,4 +215,60 @@
 .m-shell .term-chip:active { filter: brightness(0.85); }
 @media (orientation: landscape) {
   .m-shell .term-chips { grid-template-columns: repeat(8, minmax(0, 1fr)); padding-top: 6px; padding-bottom: 6px; }
+}
+
+/* DOS games (MobileGame.tsx, VirtualKeys.tsx). Upright: the game on top, a graphite key panel below, D-pad left and
+   action keys right. Sideways: D-pad | game | action keys, and the Dock is hidden (.m-gaming, above). */
+.m-shell .m-game {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: 'screen screen' 'left right';
+  background: linear-gradient(#45484c, #2b2d30);
+}
+.m-shell .m-game:not(.has-dpad) { grid-template-areas: 'screen screen' 'right right'; }
+.m-shell .m-game-screen { grid-area: screen; min-height: 0; background: #000; }
+.m-shell .m-game-screen .dos { height: 100%; }
+.m-shell .m-vk-left { grid-area: left; display: flex; align-items: center; justify-content: center; padding: 10px 4px 10px 12px; }
+.m-shell .m-vk-right { grid-area: right; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; padding: 10px 12px; }
+.m-shell .m-vk-dpad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); grid-template-areas: '. up .' 'left . right' '. down .'; gap: 2px; }
+.m-shell .m-vk-d-up { grid-area: up; }
+.m-shell .m-vk-d-left { grid-area: left; }
+.m-shell .m-vk-d-right { grid-area: right; }
+.m-shell .m-vk-d-down { grid-area: down; }
+.m-shell .m-vk-key {
+  min-width: 52px;
+  height: 52px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #151515;
+  background: linear-gradient(#6c6f74, #4d5055 50%, #42454a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 3px rgba(0, 0, 0, 0.5);
+  color: #f2f2f2;
+  font-size: 15px;
+  font-weight: 700;
+  touch-action: none; /* a held key must not scroll or zoom */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.m-shell .m-vk-key.is-wide { min-width: 112px; }
+.m-shell .m-vk-key:active { background: #2c2e31; }
+.m-shell .m-vk-key:disabled { opacity: 0.45; }
+.m-shell .m-vk-dpad .m-vk-key { min-width: 0; height: auto; padding: 0; font-size: 20px; } /* fills its 52 px cell */
+/* The ABC field: focusable (iOS will not focus display:none) but invisible; 16 px so iOS does not zoom on focus */
+.m-shell .m-vk-text { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; font-size: 16px; }
+@media (orientation: landscape) {
+  .m-shell .m-game {
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 200px);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'left screen right';
+  }
+  .m-shell .m-game:not(.has-dpad) { grid-template-columns: minmax(0, 1fr) minmax(0, 200px); grid-template-areas: 'screen right'; }
+  /* 346 px of height under the top bar: Oregon's six rows of keys fit at 46 px */
+  .m-shell .m-vk-key { height: 46px; }
+  .m-shell .m-vk-right { gap: 6px; }
+  .m-shell .m-vk-left { padding-left: max(12px, env(safe-area-inset-left)); }
+  .m-shell .m-vk-right { padding-right: max(12px, env(safe-area-inset-right)); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 }

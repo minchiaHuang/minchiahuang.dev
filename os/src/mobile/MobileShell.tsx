@@ -10,13 +10,13 @@ import FiveLetters from '../components/FiveLetters';
 import Terminal from '../components/Terminal';
 import HardDisk from '../components/HardDisk';
 import Credits from '../components/Credits';
-import DosGame from '../components/DosGame';
 import Shutdown from '../components/Shutdown';
 import AboutCard from './AboutCard';
 import MobileResume from './MobileResume';
 import TopBar from './TopBar';
 import MobileDock from './MobileDock';
 import HomeGrid from './HomeGrid';
+import MobileGame from './MobileGame';
 import { dockLit, isGame, leavesProjects, reduceMobile, startState, titleOf } from './state';
 import type { MobileAction } from './state';
 import './mobile.css';
@@ -137,12 +137,9 @@ export default function MobileShell() {
       case 'credits':
         return <Credits />;
       default:
-        // A DOS game. Opening anything else unmounts it, which stops the emulator and its sound.
-        return (
-          <div className="m-game">
-            <DosGame id={id} />
-          </div>
-        );
+        // A DOS game with its on-screen keys. Opening anything else unmounts it, which stops the emulator and its sound.
+        // key: another game is a new emulator, so MobileGame (and the send it holds) starts over.
+        return <MobileGame key={id} id={id} />;
     }
   };
 
