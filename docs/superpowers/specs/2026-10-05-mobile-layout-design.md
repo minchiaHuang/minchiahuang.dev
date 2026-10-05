@@ -18,7 +18,7 @@
 | 1 | 方向 A：保留 Aqua，改成手機操作方式（不做手機 3D、不做一般捲動網頁）。 |
 | 2 | Terminal 與 Games 都保留，補觸控輸入（指令按鈕、虛擬按鍵）。 |
 | 3 | 導覽：Dock 常駐底部；開站先進 Showcase；關掉 app 回 Aqua 桌布圖示格。 |
-| 4 | 手機判斷：螢幕短邊 ≤ 600px（直拿橫拿都算手機），平板走 3D。 |
+| 4 | 手機判斷：寬 ≤ 600px，或觸控（`pointer: coarse`）且高 ≤ 600px（橫拿 844×390 算手機）；平板走 3D。（2026-10-05 審查修改：原為短邊 ≤ 600px，但 1280×720 的筆電視窗或開著 devtools 時 innerHeight 約 590，不該被當手機。） |
 | 5 | Apple 選單加「View 3D Desk」。 |
 | 6 | 架構：另寫 `MobileShell`，共用各 app 內容元件；`windows.ts`、`Window.tsx`、`App.tsx` 不動。 |
 | 7 | 頂部只有一條：左 ×、中 app 名稱、右 Apple「T」選單；手機不顯示時鐘。 |
@@ -28,16 +28,16 @@
 | 11 | Showcase 手機首頁 = V1 卡片（內容見下）；「More Info…」開現有 About/Experience 內容，× 回卡片。 |
 
 ## 1. 手機判斷與導向（`app/`）
-- `app/src/flatMode.ts`：`shouldUseFlatOS` 改為 `!webgl || Math.min(width, height) <= PHONE_MAX_SHORT_SIDE`（600）。`FlatEnv` 加 `height`。
-  - 影響：寬 601–768、高 > 600 的視窗（例如桌機把瀏覽器拉窄）從手機版改回 3D；手機橫拿（844×390）從 3D 改成手機版。
+- `app/src/flatMode.ts`：`shouldUseFlatOS` 改為 `!webgl || (!desk && (width <= PHONE_MAX_PX || (coarse && height <= PHONE_MAX_PX)))`（600）。`FlatEnv` 加 `height`、`coarse`（`readFlatEnv` 讀 `matchMedia('(pointer: coarse)')`）。
+  - 影響：寬 601–768、高 > 600 的視窗（例如桌機把瀏覽器拉窄）從手機版改回 3D；手機橫拿（觸控、844×390）從 3D 改成手機版；滑鼠的 844×390 或 1280×590 視窗仍是 3D。
 - 新增覆寫參數 `?desk=1`：有它就不導向（和 `SHOT` 一起判斷，`main.ts:140`）。「View 3D Desk」連到 `/?desk=1`。
   - 從 `/os/` 點過去是一般導覽（push），按返回會回到 `/os/`。
-- `flatMode.test.ts` 更新：短邊規則（390×844、844×390、768×1024、600/601 邊界）、`?desk=1`。
+- `flatMode.test.ts` 更新：寬或觸控高規則（390×844 觸控、844×390 觸控／滑鼠、1280×590 滑鼠、500×900 滑鼠、768×1024、600/601 邊界）、`?desk=1`。
 
 ## 2. OS 入口分流（`os/`）
-- 新增 `os/src/phone.ts`：`isPhone(w, h) = Math.min(w, h) <= 600`，常數與 app 端同值（兩個 build 分開，各自測試，註解互相指向）。
-- `os/src/main.tsx`：standalone（`window.parent === window`）且 `isPhone(innerWidth, innerHeight)` → render `<MobileShell/>`，否則 render 現有 `<App/>`。
-  - 只在載入時判斷一次；轉向不換殼（短邊不變），桌機拉窗跨過門檻要重新整理才換——可接受。
+- 新增 `os/src/phone.ts`：`isPhone(w, h, coarse) = w <= 600 || (coarse && h <= 600)`，常數與 app 端同值（兩個 build 分開，各自測試，註解互相指向）。
+- `os/src/main.tsx`：standalone（`window.parent === window`）且 `isPhone(innerWidth, innerHeight, matchMedia('(pointer: coarse)').matches)` → render `<MobileShell/>`，否則 render 現有 `<App/>`。
+  - 只在載入時判斷一次；轉向不換殼（觸控手機橫直都是手機），桌機拉窗跨過門檻要重新整理才換——可接受。
   - iframe 裡（3D 場景的螢幕）永遠是 `<App/>`。
 - `App.tsx:53` 的「≤768 就放大 Showcase」保留不動：手機不會再走到 `App`，它只剩寬 601–768 的 standalone 桌機視窗會用到。
 - `os/index.html` viewport 加 `viewport-fit=cover`，手機殼用 `env(safe-area-inset-*)` 留邊。
@@ -110,7 +110,7 @@ iOS Safari 不會在 `<object>` 裡顯示 PDF，所以手機版不用 `<object>`
 
 ## 6. 測試與驗證
 單元測試（`node --test`，無新套件）：
-- `app/src/flatMode.test.ts`：短邊規則與 `?desk=1`。
+- `app/src/flatMode.test.ts`：寬／觸控高規則與 `?desk=1`。
 - `os/src/phone.test.ts`：`isPhone` 邊界。
 - `os/src/mobile/state.test.ts`：open / close / moreInfo、遊戲歸屬、More Info 時 close 回卡片。
 - `os/src/mobile/keyLayouts.test.ts`：每款遊戲配置用到的鍵碼，都要出現在 `os/node_modules/js-dos/dist/js-dos.js` 的 `KBD_*` 表裡（測試直接讀那個檔案解析，不和自己的常數比，免得變成套套邏輯）。

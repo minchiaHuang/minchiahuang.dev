@@ -25,7 +25,7 @@ type Request<T> = (T & { n: number }) | null; // n changes on every request so a
 
 const shot = new URLSearchParams(location.search).get('shot');
 
-// The OS on a phone. main.tsx picks it for a standalone /os/ page whose short side is <= 600 px; the iMac's screen in
+// The OS on a phone. main.tsx picks it for a standalone /os/ page that is a phone (width <= 600 px, or touch and height <= 600 px); the iMac's screen in
 // the 3D scene always gets App.tsx. One full-screen app at a time under a 44 px top bar, the Dock as a tab bar, and the
 // Aqua desktop grid when no app is open. The content components are App.tsx's own; windows.ts plays no part here.
 export default function MobileShell() {

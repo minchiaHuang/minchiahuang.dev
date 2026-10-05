@@ -1,25 +1,34 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isKeyboardOpen, isPhone, KEYBOARD_MIN_PX, PHONE_MAX_SHORT_SIDE } from './phone.ts';
+import { isKeyboardOpen, isPhone, KEYBOARD_MIN_PX, PHONE_MAX_PX } from './phone.ts';
 
-test('a phone is a phone whichever way up it is held', () => {
-  assert.equal(isPhone(390, 844), true);
-  assert.equal(isPhone(844, 390), true);
-  assert.equal(isPhone(360, 780), true);
+test('a touch phone is a phone whichever way up it is held', () => {
+  assert.equal(isPhone(390, 844, true), true);
+  assert.equal(isPhone(844, 390, true), true);
+  assert.equal(isPhone(360, 780, true), true);
 });
 
-test('the short side decides: 600 is a phone, 601 is not', () => {
-  assert.equal(PHONE_MAX_SHORT_SIDE, 600); // same value as app/src/flatMode.ts
-  assert.equal(isPhone(600, 1000), true);
-  assert.equal(isPhone(601, 1000), false);
-  assert.equal(isPhone(1000, 600), true);
-  assert.equal(isPhone(1000, 601), false);
+test('a short window with a mouse is not a phone: laptop window, docked devtools', () => {
+  assert.equal(isPhone(844, 390, false), false);
+  assert.equal(isPhone(1280, 590, false), false);
+});
+
+test('a narrow window is a phone even with a mouse', () => {
+  assert.equal(isPhone(500, 900, false), true);
+});
+
+test('the boundaries: width 600 is a phone, 601 is not; touch height 600 is a phone, 601 is not', () => {
+  assert.equal(PHONE_MAX_PX, 600); // same value as app/src/flatMode.ts
+  assert.equal(isPhone(600, 1000, false), true);
+  assert.equal(isPhone(601, 1000, false), false);
+  assert.equal(isPhone(1000, 600, true), true);
+  assert.equal(isPhone(1000, 601, true), false);
 });
 
 test('tablets and desktops are not phones', () => {
-  assert.equal(isPhone(768, 1024), false);
-  assert.equal(isPhone(1024, 768), false);
-  assert.equal(isPhone(1440, 900), false);
+  assert.equal(isPhone(768, 1024, true), false);
+  assert.equal(isPhone(1024, 768, true), false);
+  assert.equal(isPhone(1440, 900, false), false);
 });
 
 test('the keyboard is up when the visible height drops by more than 150 px', () => {
