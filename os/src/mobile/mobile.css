@@ -1,0 +1,186 @@
+/* Phone shell (os/src/mobile/MobileShell.tsx). Every rule here starts with .m-shell, so the desktop OS (App.tsx) never
+   matches one. Tap targets are at least 44 px. Safe areas come from viewport-fit=cover in os/index.html. */
+
+/* Frame: top bar, the app area (each app scrolls inside itself), the Dock. 100dvh, not 100vh, which iOS's address bar
+   would cut. While the keyboard is up, MobileShell writes the visible height into --m-vh. */
+.screen.m-shell { height: 100vh; height: var(--m-vh, 100dvh); display: flex; flex-direction: column; touch-action: manipulation; }
+.m-shell .m-main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.m-shell .m-pane { position: absolute; top: 0; bottom: 0; left: env(safe-area-inset-left); right: env(safe-area-inset-right); overflow: hidden; }
+.m-shell .m-pane.is-app { background: #fff; }
+.m-shell .m-game { height: 100%; background: #000; }
+
+/* The T badge: the About card's icon and About This Site on the desktop grid */
+.m-shell .m-t-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(#8cc0ff, #3d84e0 55%, #1a5bc4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Showcase card (AboutCard.tsx, Figma 06 Mobile V1 73:491): an Aqua window on the wallpaper */
+.m-shell .m-card-wrap { position: absolute; inset: 0; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 16px 12px 24px; }
+.m-shell .m-card { width: 100%; max-width: 420px; overflow: hidden; border-radius: 8px; background: var(--pinstripe); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.28); }
+.m-shell .m-card-title { position: relative; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.m-shell .m-card-gels { position: absolute; left: 8px; top: 5px; display: flex; gap: 7px; }
+.m-shell .m-card-gels .gel { display: block; }
+.m-shell .m-card-body { margin: 0 8px 8px; padding: 18px 16px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; background: #fff; border: 1px solid #9b9b9b; }
+.m-shell .m-card-head { display: flex; flex-direction: column; align-items: center; }
+.m-shell .m-card-head .m-t-badge { width: 64px; height: 64px; }
+.m-shell .m-card-name { margin: 10px 0 0; font-size: 22px; line-height: 26px; font-weight: 800; }
+.m-shell .m-card-job { margin-top: 2px; font-size: 16px; font-weight: 700; color: var(--aqua-blue-dark); }
+.m-shell .m-card-tag { margin-top: 2px; font-size: 13px; color: #444; }
+.m-shell .m-card-facts { width: 100%; margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #e2e2e2; font-size: 13px; line-height: 18px; text-align: left; }
+.m-shell .m-card-fact { display: flex; gap: 10px; padding: 3px 0; }
+.m-shell .m-card-fact dt { flex: none; width: 64px; text-align: right; font-weight: 700; }
+.m-shell .m-card-fact dd { margin: 0; min-width: 0; }
+.m-shell .m-card-buttons { width: 100%; margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
+.m-shell .m-card-buttons .aqua-btn { height: 44px; padding: 0 6px; border-radius: 22px; font-size: 15px; font-weight: 600; }
+.m-shell .m-card-buttons .aqua-btn.primary { grid-column: 1 / -1; }
+.m-shell .m-card-foot { margin-top: 14px; font-size: 11px; color: #777; }
+/* Sideways: two columns, so the name, the title and the Résumé and Projects buttons fit without scrolling. */
+@media (orientation: landscape) {
+  .m-shell .m-card-wrap { padding-top: 10px; }
+  .m-shell .m-card { max-width: 680px; }
+  .m-shell .m-card-body { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: 'head facts' 'buttons facts' 'foot foot'; column-gap: 20px; align-items: start; padding-top: 12px; }
+  .m-shell .m-card-head { grid-area: head; }
+  .m-shell .m-card-head .m-t-badge { width: 44px; height: 44px; font-size: 28px; border-radius: 10px; }
+  .m-shell .m-card-name { margin-top: 6px; }
+  .m-shell .m-card-facts { grid-area: facts; margin: 0; padding: 0 0 0 16px; border-top: 0; border-left: 1px solid #e2e2e2; }
+  .m-shell .m-card-buttons { grid-area: buttons; margin-top: 12px; }
+  .m-shell .m-card-foot { grid-area: foot; margin-top: 10px; }
+}
+
+/* Résumé (MobileResume.tsx): the page picture as wide as the screen; it and Open PDF both go to the PDF */
+.m-shell .m-resume { height: 100%; display: flex; flex-direction: column; background: #8e8e8e; }
+.m-shell .m-resume-bar { height: 56px; gap: 8px; font-size: 13px; }
+.m-shell .m-resume-bar span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.m-shell .m-resume-bar .aqua-btn { flex: none; height: 44px; padding: 0 20px; border-radius: 22px; font-size: 15px; }
+.m-shell .m-resume-page { flex: 1; min-height: 0; display: block; overflow-y: auto; padding: 8px; }
+.m-shell .m-resume-page img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+
+/* Top bar (TopBar.tsx): × | title | T */
+.m-shell .m-top {
+  flex: none;
+  position: relative;
+  z-index: 300;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  height: calc(44px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  background: linear-gradient(#ffffff, #ececec);
+  border-bottom: 1px solid #a8a8a8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.m-shell .m-top-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.m-shell .m-top-close { font-size: 28px; line-height: 1; color: #444; }
+.m-shell .m-top-t { font-size: 20px; font-weight: 900; color: var(--aqua-blue-dark); }
+.m-shell .m-top-t.is-open { background: var(--select); color: #fff; }
+.m-shell .m-top-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font-size: 16px; font-weight: 800; }
+.m-shell .m-menu {
+  position: absolute;
+  top: 100%;
+  right: env(safe-area-inset-right);
+  min-width: 220px;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(250, 250, 250, 0.97);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.m-shell .m-menu-item { min-height: 44px; display: flex; align-items: center; padding: 0 20px; font-size: 16px; text-align: left; color: #000; text-decoration: none; }
+.m-shell .m-menu-item:active { background: var(--select); color: #fff; }
+.m-shell .m-menu-sep { margin: 4px 0; border: 0; border-top: 1px solid #d6d6d6; }
+
+/* Dock (MobileDock.tsx): a tab bar; labels upright only; hidden under the keyboard and beside a game held sideways */
+.m-shell .m-dock {
+  flex: none;
+  z-index: 200;
+  display: flex;
+  padding: 4px max(4px, env(safe-area-inset-right)) calc(2px + env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+  background: rgba(225, 235, 250, 0.88);
+  border-top: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+}
+.m-shell .m-dock-item { position: relative; flex: 1 1 0; min-width: 0; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding-bottom: 6px; }
+.m-shell .m-dock-item img { display: block; width: 44px; height: 44px; }
+.m-shell .m-dock-label { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; line-height: 12px; font-weight: 700; color: #1d2b44; }
+.m-shell .m-dock-item.is-lit::after { content: ''; position: absolute; left: 50%; bottom: 1px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #111; }
+.m-shell.kb-open .m-dock { display: none; }
+@media (orientation: landscape) {
+  .m-shell .m-dock-label { display: none; }
+  .m-shell .m-dock-item { padding-bottom: 4px; }
+  .m-shell .m-dock-item img { width: 36px; height: 36px; }
+  .m-shell.m-gaming .m-dock { display: none; }
+}
+
+/* Desktop grid (HomeGrid.tsx): white labels on the Aqua wallpaper */
+.m-shell .m-home {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  align-content: start;
+  gap: 16px 4px;
+  padding: 20px max(12px, env(safe-area-inset-right)) 20px max(12px, env(safe-area-inset-left));
+}
+.m-shell .m-home-item { min-height: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.m-shell .m-home-item img, .m-shell .m-home-item .m-t-badge { width: 64px; height: 64px; }
+.m-shell .m-home-label { padding: 0 6px; color: #fff; font-size: 13px; line-height: 16px; font-weight: 700; text-align: center; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
+
+/* Finder windows (Projects, Games, Tommy HD): a taller info bar so its back button is a full tap target; the count
+   moves right so a long back button never covers it. */
+.m-shell .finder-info { height: 48px; justify-content: flex-end; padding: 0 12px; font-size: 13px; }
+.m-shell .finder-info .aqua-btn { left: 6px; top: 2px; height: 44px; padding: 0 14px; border-radius: 22px; font-size: 14px; }
+/* Projects as a list (layout="list"): one project per row */
+.m-shell .finder-grid.finder-list { display: block; padding: 0; }
+.m-shell .finder-list .finder-item { width: 100%; min-height: 56px; display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; align-items: center; padding: 6px 16px; border-bottom: 1px solid #e2e2e2; text-align: left; }
+.m-shell .finder-list .finder-icon { grid-row: 1 / span 2; width: 40px; height: 40px; padding: 0; }
+.m-shell .finder-list .finder-name { grid-column: 2; padding: 0; font-size: 16px; line-height: 21px; text-align: left; }
+.m-shell .finder-list .finder-name:last-child { grid-row: 1 / span 2; }
+.m-shell .finder-list .finder-sub { grid-column: 2; margin: 0; font-size: 12px; text-align: left; }
+.m-shell .finder-list .finder-item.is-selected .finder-name { background: none; color: inherit; }
+.m-shell .proj-detail { padding: 16px 16px 24px; }
+.m-shell .proj-detail p { font-size: 16px; line-height: 23px; }
+.m-shell .proj-links { flex-wrap: wrap; }
+.m-shell .proj-links .aqua-btn { height: 44px; padding: 0 20px; border-radius: 22px; font-size: 15px; }
+
+/* Contact: rows stack (label over value) so the long profile links fit; full-size buttons */
+.m-shell .contact { padding: 16px; }
+.m-shell .contact-head { align-items: flex-start; }
+.m-shell .contact-head img { width: 48px; height: 48px; }
+.m-shell .contact-row { flex-direction: column; padding: 6px 0; }
+.m-shell .contact-row dt { width: auto; padding: 0; text-align: left; font-size: 12px; }
+.m-shell .contact-row dd { overflow-wrap: anywhere; font-size: 16px; }
+.m-shell .contact-row dd a { display: inline-flex; align-items: center; min-height: 44px; }
+.m-shell .contact-actions .aqua-btn { flex: 1; height: 44px; border-radius: 22px; font-size: 16px; }
+
+/* Five Letters: the ten-key row fits 360 px. Keys keep a 46 px height; their width is a tenth of the row, as on the
+   phone's own keyboard. The game scrolls when the phone is sideways. */
+.m-shell .hn { overflow-y: auto; padding: 8px 4px 16px; }
+.m-shell .hn-keys { width: 100%; }
+.m-shell .hn-keyrow { width: 100%; justify-content: center; gap: 4px; }
+.m-shell .hn-key { flex: 1 1 0; min-width: 0; max-width: 40px; height: 46px; }
+.m-shell .hn-key.hn-wide { flex-grow: 1.6; max-width: 60px; font-size: 14px; }
+.m-shell .hn-restart { width: 160px; height: 44px; border-radius: 22px; }
+
+/* Credits: the 600 px columns take the screen width, and the page scrolls */
+.m-shell .cr { overflow-y: auto; }
+.m-shell .cr-head { padding-top: 24px; }
+.m-shell .cr-page { padding: 40px 16px 140px; }
+.m-shell .cr-section { width: 100%; max-width: 600px; }
+.m-shell .cr-row { gap: 12px; font-size: 15px; line-height: 20px; }
+
+/* Showcase pages ("More Info…"): the 768 px rules in styles.css already stack the side column on an upright phone;
+   here the page links and buttons become full tap targets. */
+.m-shell .sc-nav-item { height: auto; margin-bottom: 0; }
+.m-shell .sc-nav-item a, .m-shell .sc-home-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.m-shell .sc-big-btn { height: 44px; border-radius: 22px; }

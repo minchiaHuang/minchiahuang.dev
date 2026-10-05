@@ -14,9 +14,10 @@ interface Props {
   onProjects: () => void;
   onHackathons: () => void;
   onExperience: () => void;
+  tapToOpen?: boolean; // phone shell: one tap opens a folder (touch has no double-click)
 }
 
-export default function HardDisk({ onProjects, onHackathons, onExperience }: Props) {
+export default function HardDisk({ onProjects, onHackathons, onExperience, tapToOpen = false }: Props) {
   const [sel, setSel] = useState<Folder | null>(null);
   const open = (f: Folder) => (f === 'projects' ? onProjects() : f === 'experience' ? onExperience() : onHackathons());
 
@@ -29,6 +30,7 @@ export default function HardDisk({ onProjects, onHackathons, onExperience }: Pro
             key={f.id}
             className={`finder-item${sel === f.id ? ' is-selected' : ''}`}
             onMouseDown={() => setSel(f.id)}
+            onClick={tapToOpen ? () => open(f.id) : undefined}
             onDoubleClick={() => open(f.id)}
           >
             <img className="finder-icon" src={aqua('folder.png')} alt="" draggable={false} />

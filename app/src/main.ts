@@ -135,8 +135,8 @@ function start3D() {
   tick();
 }
 
-// Phones and no WebGL: straight to the OS, before any 3D file is requested.
-// Shot mode always renders the scene (screenshots are taken at desktop size).
+// Phones (width <= 600 px, or touch and height <= 600 px; ?desk=1 opts out) and no WebGL: straight to the OS, before any 3D
+// file is requested (flatMode.ts). Shot mode always renders the scene (screenshots are taken at desktop size).
 if (!SHOT && shouldUseFlatOS(readFlatEnv(hasWebGL))) {
   goFlat();
 } else {

@@ -9,10 +9,13 @@ interface Props {
   request?: { slug: string; n: number };
   // Tommy HD > Hackathons asks for the hackathon-tagged projects only; `n` changes on every request.
   filter?: { hackathons: true; n: number };
+  // Phone shell: one tap opens a project (touch has no double-click), and `list` shows one project per row.
+  tapToOpen?: boolean;
+  layout?: 'grid' | 'list';
 }
 
 // Finder-style icon view of the projects; double-click shows one project's details and links.
-export default function Projects({ request, filter }: Props) {
+export default function Projects({ request, filter, tapToOpen = false, layout = 'grid' }: Props) {
   const [sel, setSel] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(request?.slug ?? null);
   const [hackathonsOnly, setHackathonsOnly] = useState(!!filter);
@@ -70,12 +73,13 @@ export default function Projects({ request, filter }: Props) {
           `${list.length} items`
         )}
       </div>
-      <div className="finder-grid" onMouseDown={(e) => e.target === e.currentTarget && setSel(null)}>
+      <div className={`finder-grid${layout === 'list' ? ' finder-list' : ''}`} onMouseDown={(e) => e.target === e.currentTarget && setSel(null)}>
         {list.map((x) => (
           <button
             key={x.slug}
             className={`finder-item${sel === x.slug ? ' is-selected' : ''}`}
             onMouseDown={() => setSel(x.slug)}
+            onClick={tapToOpen ? () => setOpen(x.slug) : undefined}
             onDoubleClick={() => setOpen(x.slug)}
           >
             <img className="finder-icon" src={aqua('folder.png')} alt="" draggable={false} />
