@@ -41,7 +41,7 @@ check() { # check <label> <command...>
 visit phone 400
 check "400px: /os/ was loaded" grep -qx '/os/' "$WORK/phone.log"
 check "400px: no .glb requested" bash -c "! grep -q '\.glb$' '$WORK/phone.log'"
-check "400px: OS desktop in the DOM" grep -q 'class="screen"' "$WORK/phone.dom"
+check "400px: phone OS in the DOM" grep -q 'class="screen m-shell' "$WORK/phone.dom"
 
 visit desktop 1440
 check "1440px: .glb requested (control)" grep -q '\.glb$' "$WORK/desktop.log"
