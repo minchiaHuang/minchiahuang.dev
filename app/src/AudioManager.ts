@@ -95,7 +95,7 @@ export default class AudioManager {
   /** Random one of key_1..key_6. */
   private playKey() {
     const n = 1 + Math.floor(Math.random() * 6);
-    this.play(`keyboardKeydown${n}`, { volume: 0.8, position: KEYBOARD_AT });
+    this.play(`keyboardKeydown${n}`, { volume: 0.4, position: KEYBOARD_AT });
   }
 
   /** The soft tick used by the UI typing animations and buttons. */
