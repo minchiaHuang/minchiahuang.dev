@@ -50,15 +50,19 @@ function Key({ k, send, className = '', children }: { k: VKey; send: SendKey | n
 function Abc({ send }: { send: SendKey | null }) {
   const field = useRef<HTMLInputElement>(null);
   const queue = useRef(Promise.resolve());
+  const composed = useRef(''); // what the open composition (Android keyboards) has already typed
   const type = (codes: number[]) => {
     if (!send) return;
     for (const c of codes) {
-      queue.current = queue.current.then(async () => {
-        send(c, true);
-        await wait(40);
-        send(c, false);
-        await wait(40);
-      });
+      queue.current = queue.current
+        .then(async () => {
+          send(c, true);
+          await wait(40);
+          send(c, false);
+          await wait(40);
+        })
+        // One failed send (a dead emulator) must not leave the queue rejected, or every later letter is skipped.
+        .catch(() => {});
     }
   };
   return (
@@ -78,7 +82,14 @@ function Abc({ send }: { send: SendKey | null }) {
         enterKeyHint="enter"
         onInput={(e) => {
           const ev = e.nativeEvent as InputEvent;
-          type(textToKeys(ev.inputType, ev.data));
+          type(textToKeys(ev.inputType, ev.data, composed.current));
+          if (ev.inputType === 'insertCompositionText') composed.current = ev.data ?? '';
+          else if (ev.inputType === 'deleteContentBackward') composed.current = composed.current.slice(0, -1);
+          // Resetting the value while a composition is open would end it (or retype it): wait for compositionend.
+          if (!ev.isComposing) e.currentTarget.value = SENTINEL;
+        }}
+        onCompositionEnd={(e) => {
+          composed.current = '';
           e.currentTarget.value = SENTINEL;
         }}
         onKeyDown={(e) => {

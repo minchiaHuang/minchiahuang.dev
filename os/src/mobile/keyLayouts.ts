@@ -84,10 +84,24 @@ export function charToKbd(ch: string): number | null {
 }
 
 // The keys for one `input` event on the ABC field (InputEvent.inputType and .data). VirtualKeys resets the field after
-// every event, so each event carries new text only. Autocorrect's insertReplacementText is ignored: it would type a
-// whole word again. Enter does not fire `input` on a one-line field; VirtualKeys handles it on keydown.
-export function textToKeys(inputType: string, data: string | null): number[] {
+// every event outside a composition, so each such event carries new text only. Autocorrect's insertReplacementText is
+// ignored: it would type a whole word again. Enter does not fire `input` on a one-line field; VirtualKeys handles it on
+// keydown.
+// Android keyboards (Gboard) send plain letters as insertCompositionText, and each event carries the whole composition
+// so far ("t", "to", "tom"), not the new letter. `composed` is what an earlier event of the same composition already
+// typed: only the difference is sent, so letters are not doubled. A change inside the composed text (not at its end)
+// backspaces over the part that differs, then types the rest.
+export function textToKeys(inputType: string, data: string | null, composed = ''): number[] {
   if (inputType === 'deleteContentBackward') return [KBD.backspace];
+  if (inputType === 'insertCompositionText') {
+    const next = [...(data ?? '')].filter((ch) => charToKbd(ch) !== null).join('');
+    let same = 0;
+    while (same < composed.length && same < next.length && composed[same] === next[same]) same++;
+    return [
+      ...Array<number>(composed.length - same).fill(KBD.backspace),
+      ...[...next.slice(same)].map((ch) => charToKbd(ch)!),
+    ];
+  }
   if (inputType !== 'insertText' || !data) return [];
   return [...data].map(charToKbd).filter((c): c is number => c !== null);
 }

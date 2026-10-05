@@ -75,5 +75,15 @@ test('the ABC field: each letter once, backspace deletes, autocorrect types noth
   assert.deepEqual(textToKeys('insertText', null), []);
   assert.deepEqual(textToKeys('deleteContentBackward', null), [KBD.backspace]);
   assert.deepEqual(textToKeys('insertReplacementText', 'Tommy'), []);
-  assert.deepEqual(textToKeys('insertCompositionText', 'a'), []);
+  assert.deepEqual(textToKeys('insertCompositionText', null), []);
+});
+
+test('Android composition: each event carries the whole word, only the new letters are typed', () => {
+  assert.deepEqual(textToKeys('insertCompositionText', 't'), [84]);
+  assert.deepEqual(textToKeys('insertCompositionText', 'to', 't'), [79]);
+  assert.deepEqual(textToKeys('insertCompositionText', 'tom', 'to'), [77]);
+  assert.deepEqual(textToKeys('insertCompositionText', 'tom', 'tom'), []); // the same text again types nothing
+  assert.deepEqual(textToKeys('insertCompositionText', 'tom é', 'tom'), [KBD.space]); // untypable characters are dropped
+  assert.deepEqual(textToKeys('insertCompositionText', 'ta', 'to'), [KBD.backspace, 65]); // a change inside the word
+  assert.deepEqual(textToKeys('insertCompositionText', 't', 'tom'), [KBD.backspace, KBD.backspace]);
 });
