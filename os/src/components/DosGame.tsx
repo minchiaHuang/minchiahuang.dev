@@ -2,11 +2,17 @@ import { useEffect, useRef } from 'react';
 import 'js-dos/dist/js-dos.css';
 import 'js-dos/dist/js-dos.js'; // sets window.Dos
 import type { AppId } from '../apps';
+import type { SendKey } from '../mobile/keyLayouts';
 
 declare global {
   interface Window {
     Dos: (el: HTMLElement, opts: Record<string, unknown>) => { stop: () => Promise<void> };
   }
+}
+
+// The part of js-dos's command interface (emulators.js) the phone's on-screen keys use. KBD codes, see keyLayouts.ts.
+interface DosCi {
+  sendKeyEvent: (code: number, pressed: boolean) => void;
 }
 
 // js-dos 8.5.1 leaks audio: emulators.js (createAudioPort) opens an AudioContext per game and never closes it, even after
@@ -37,10 +43,16 @@ Worker.prototype.terminate = function (this: Worker) {
 
 // Runs games/<id>.jsdos in js-dos (emulator files are served from /os/emulators, see vite.config.ts).
 // Unmounting stops the emulator, which also silences its audio (the hooks above close its AudioContext).
-export default function DosGame({ id }: { id: AppId }) {
+// onReady (phone shell): called on every emulator start with a function that presses and releases keys in it.
+export default function DosGame({ id, onReady }: { id: AppId; onReady?: (send: SendKey) => void }) {
   const host = useRef<HTMLDivElement>(null);
+  const ready = useRef(onReady);
+  useEffect(() => {
+    ready.current = onReady;
+  });
   useEffect(() => {
     const base = import.meta.env.BASE_URL;
+    let live = true;
     const player = window.Dos(host.current!, {
       url: `${base}games/${id}.jsdos`,
       pathPrefix: `${base}emulators/`,
@@ -48,8 +60,17 @@ export default function DosGame({ id }: { id: AppId }) {
       kiosk: true,
       noCloud: true,
       mouseCapture: false,
+      // js-dos 8.5.1 calls this with 'ci-ready' and the command interface, via setTimeout after the emulator starts.
+      // Each mount gets its own ci, so a game switch hands over a fresh send; until then there is none to call.
+      // `live` stops a ci that arrives after this effect was cleaned up from reaching a newer mount's onReady.
+      onEvent: (event: string, ci?: DosCi) => {
+        if (live && event === 'ci-ready' && ci) ready.current?.((code, pressed) => ci.sendKeyEvent(code, pressed));
+      },
     });
-    return () => void player.stop();
+    return () => {
+      live = false;
+      void player.stop();
+    };
   }, [id]);
   return <div className="dos" ref={host} />;
 }
