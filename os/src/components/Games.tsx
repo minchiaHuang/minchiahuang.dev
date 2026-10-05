@@ -1,8 +1,9 @@
 import { aqua, appById, GAMES, type AppId } from '../apps';
 import { useState } from 'react';
 
-// The Games folder: the three DOS games under their publishers' logos. Double-click starts one in its own window.
-export default function Games({ onOpen }: { onOpen: (id: AppId) => void }) {
+// The Games folder: the three DOS games under their publishers' logos. Double-click starts one in its own window
+// (tapToOpen, the phone shell: one tap).
+export default function Games({ onOpen, tapToOpen = false }: { onOpen: (id: AppId) => void; tapToOpen?: boolean }) {
   const [sel, setSel] = useState<AppId | null>(null);
   return (
     <div className="finder">
@@ -13,6 +14,7 @@ export default function Games({ onOpen }: { onOpen: (id: AppId) => void }) {
             key={g.id}
             className={`finder-item${sel === g.id ? ' is-selected' : ''}`}
             onMouseDown={() => setSel(g.id)}
+            onClick={tapToOpen ? () => onOpen(g.id) : undefined}
             onDoubleClick={() => onOpen(g.id)}
           >
             <span className="finder-logo">
