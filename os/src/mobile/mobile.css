@@ -184,3 +184,36 @@
 .m-shell .sc-nav-item { height: auto; margin-bottom: 0; }
 .m-shell .sc-nav-item a, .m-shell .sc-home-links a { display: inline-flex; align-items: center; min-height: 44px; }
 .m-shell .sc-big-btn { height: 44px; border-radius: 22px; }
+
+/* Terminal with command buttons (Terminal.tsx, chips): the shell scrolls above two rows of Aqua pills. While the
+   keyboard is up the Dock hides (.kb-open) and the pills sit right above the keyboard. */
+.m-shell .term-box { height: 100%; display: flex; flex-direction: column; background: #101010; }
+.m-shell .term-box .term { flex: 1; min-height: 0; height: auto; }
+.m-shell .term-input input { font-size: max(16px, 1em); } /* below 16 px iOS zooms the page on focus */
+.m-shell .term-chips {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+  background: #2a2a2a;
+  border-top: 1px solid #444;
+}
+.m-shell .term-chip {
+  height: 44px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: 22px;
+  border: 1px solid #7d7d7d;
+  background: linear-gradient(#ffffff, #f0f0f0 45%, #dcdcdc 50%, #f2f2f2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  color: #000;
+  font-family: var(--mono-font);
+  font-size: 18px; /* VT323 runs small: 18 px reads like 14 px of the UI font */
+}
+.m-shell .term-chip:active { filter: brightness(0.85); }
+@media (orientation: landscape) {
+  .m-shell .term-chips { grid-template-columns: repeat(8, minmax(0, 1fr)); padding-top: 6px; padding-bottom: 6px; }
+}

@@ -115,6 +115,7 @@ export default function MobileShell() {
           <Terminal
             // Not focused on open: on a phone that would throw the keyboard over the screen. A tap on it focuses.
             active={false}
+            chips
             onEffect={(e) => {
               if (e.open === 'projects') setProjectReq((prev) => ({ slug: e.project, n: (prev?.n ?? 0) + 1 }));
               open(e.open);
