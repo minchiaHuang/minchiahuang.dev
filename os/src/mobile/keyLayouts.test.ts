@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { inflateRawSync } from 'node:zlib';
 import { GAMES } from '../apps.ts';
 import { charToKbd, DPAD, KBD, LAYOUTS, textToKeys } from './keyLayouts.ts';
 
@@ -86,4 +87,56 @@ test('Android composition: each event carries the whole word, only the new lette
   assert.deepEqual(textToKeys('insertCompositionText', 'tom é', 'tom'), [KBD.space]); // untypable characters are dropped
   assert.deepEqual(textToKeys('insertCompositionText', 'ta', 'to'), [KBD.backspace, 65]); // a change inside the word
   assert.deepEqual(textToKeys('insertCompositionText', 't', 'tom'), [KBD.backspace, KBD.backspace]);
+});
+
+// Doom reads its gameplay keys from DEFAULT.CFG in the bundle, as DOS scancodes. If our D-pad sends other keys, the
+// buttons do nothing in the game (the menu is hard-wired to the arrows, so a menu check cannot catch this).
+const DOOM_BUNDLE = fileURLToPath(new URL('../../public/games/doom.jsdos', import.meta.url));
+const skipDoom = existsSync(DOOM_BUNDLE) ? false : 'os/public/games/doom.jsdos is not there (bash tools/fetch-dos-games.sh)';
+
+// The first entry of the zip is DEFAULT.CFG: parse its local file header (sizes are in the header, flag bit 3 is off).
+function readDoomCfg(): Map<string, number> {
+  const zip = readFileSync(DOOM_BUNDLE);
+  assert.equal(zip.readUInt32LE(0), 0x04034b50, 'not a zip');
+  const method = zip.readUInt16LE(8);
+  const packed = zip.readUInt32LE(18);
+  const nameLen = zip.readUInt16LE(26);
+  const extraLen = zip.readUInt16LE(28);
+  assert.equal(zip.toString('latin1', 30, 30 + nameLen), 'DEFAULT.CFG');
+  const start = 30 + nameLen + extraLen;
+  const data = zip.subarray(start, start + packed);
+  const text = (method === 8 ? inflateRawSync(data) : data).toString('latin1');
+  return new Map(text.split(/\r?\n/).flatMap((l) => (/^key_\w+\s+\d+$/.test(l.trim()) ? [l.trim().split(/\s+/) as [string, string]] : [])).map(([k, v]) => [k, Number(v)]));
+}
+
+// DOS scancode (what DEFAULT.CFG holds) to js-dos KBD code (what we send).
+const SCAN_TO_KBD = new Map([
+  [17, 87], // W
+  [31, 83], // S
+  [30, 65], // A
+  [32, 68], // D
+  [75, 263], // left arrow
+  [77, 262], // right arrow
+  [29, 341], // left ctrl
+  [57, 32], // space
+]);
+
+test("Doom's on-screen keys send the keys DEFAULT.CFG binds", { skip: skipDoom }, () => {
+  const cfg = readDoomCfg();
+  const bound = (action: string) => {
+    const scan = cfg.get(action);
+    assert.ok(scan !== undefined, `${action} is not in DEFAULT.CFG`);
+    const kbd = SCAN_TO_KBD.get(scan);
+    assert.ok(kbd !== undefined, `${action} is bound to scancode ${scan}, which the test has no KBD code for`);
+    return kbd;
+  };
+  const { dpad, keys } = LAYOUTS.doom;
+  const pad = Array.isArray(dpad) ? dpad : dpad ? DPAD : [];
+  const codeOf = (list: { label: string; code: number }[], label: string) => list.find((k) => k.label === label)?.code;
+  assert.equal(codeOf(pad, 'Up'), bound('key_up'), 'D-pad up');
+  assert.equal(codeOf(pad, 'Down'), bound('key_down'), 'D-pad down');
+  assert.equal(codeOf(pad, 'Left'), bound('key_left'), 'D-pad left');
+  assert.equal(codeOf(pad, 'Right'), bound('key_right'), 'D-pad right');
+  assert.equal(codeOf(keys, 'FIRE'), bound('key_fire'), 'FIRE');
+  assert.equal(codeOf(keys, 'USE'), bound('key_use'), 'USE');
 });
