@@ -135,3 +135,52 @@
 .m-shell .m-home-item { min-height: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .m-shell .m-home-item img, .m-shell .m-home-item .m-t-badge { width: 64px; height: 64px; }
 .m-shell .m-home-label { padding: 0 6px; color: #fff; font-size: 13px; line-height: 16px; font-weight: 700; text-align: center; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
+
+/* Finder windows (Projects, Games, Tommy HD): a taller info bar so its back button is a full tap target; the count
+   moves right so a long back button never covers it. */
+.m-shell .finder-info { height: 48px; justify-content: flex-end; padding: 0 12px; font-size: 13px; }
+.m-shell .finder-info .aqua-btn { left: 6px; top: 2px; height: 44px; padding: 0 14px; border-radius: 22px; font-size: 14px; }
+/* Projects as a list (layout="list"): one project per row */
+.m-shell .finder-grid.finder-list { display: block; padding: 0; }
+.m-shell .finder-list .finder-item { width: 100%; min-height: 56px; display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; align-items: center; padding: 6px 16px; border-bottom: 1px solid #e2e2e2; text-align: left; }
+.m-shell .finder-list .finder-icon { grid-row: 1 / span 2; width: 40px; height: 40px; padding: 0; }
+.m-shell .finder-list .finder-name { grid-column: 2; padding: 0; font-size: 16px; line-height: 21px; text-align: left; }
+.m-shell .finder-list .finder-name:last-child { grid-row: 1 / span 2; }
+.m-shell .finder-list .finder-sub { grid-column: 2; margin: 0; font-size: 12px; text-align: left; }
+.m-shell .finder-list .finder-item.is-selected .finder-name { background: none; color: inherit; }
+.m-shell .proj-detail { padding: 16px 16px 24px; }
+.m-shell .proj-detail p { font-size: 16px; line-height: 23px; }
+.m-shell .proj-links { flex-wrap: wrap; }
+.m-shell .proj-links .aqua-btn { height: 44px; padding: 0 20px; border-radius: 22px; font-size: 15px; }
+
+/* Contact: rows stack (label over value) so the long profile links fit; full-size buttons */
+.m-shell .contact { padding: 16px; }
+.m-shell .contact-head { align-items: flex-start; }
+.m-shell .contact-head img { width: 48px; height: 48px; }
+.m-shell .contact-row { flex-direction: column; padding: 6px 0; }
+.m-shell .contact-row dt { width: auto; padding: 0; text-align: left; font-size: 12px; }
+.m-shell .contact-row dd { overflow-wrap: anywhere; font-size: 16px; }
+.m-shell .contact-row dd a { display: inline-flex; align-items: center; min-height: 44px; }
+.m-shell .contact-actions .aqua-btn { flex: 1; height: 44px; border-radius: 22px; font-size: 16px; }
+
+/* Five Letters: the ten-key row fits 360 px. Keys keep a 46 px height; their width is a tenth of the row, as on the
+   phone's own keyboard. The game scrolls when the phone is sideways. */
+.m-shell .hn { overflow-y: auto; padding: 8px 4px 16px; }
+.m-shell .hn-keys { width: 100%; }
+.m-shell .hn-keyrow { width: 100%; justify-content: center; gap: 4px; }
+.m-shell .hn-key { flex: 1 1 0; min-width: 0; max-width: 40px; height: 46px; }
+.m-shell .hn-key.hn-wide { flex-grow: 1.6; max-width: 60px; font-size: 14px; }
+.m-shell .hn-restart { width: 160px; height: 44px; border-radius: 22px; }
+
+/* Credits: the 600 px columns take the screen width, and the page scrolls */
+.m-shell .cr { overflow-y: auto; }
+.m-shell .cr-head { padding-top: 24px; }
+.m-shell .cr-page { padding: 40px 16px 140px; }
+.m-shell .cr-section { width: 100%; max-width: 600px; }
+.m-shell .cr-row { gap: 12px; font-size: 15px; line-height: 20px; }
+
+/* Showcase pages ("More Info…"): the 768 px rules in styles.css already stack the side column on an upright phone;
+   here the page links and buttons become full tap targets. */
+.m-shell .sc-nav-item { height: auto; margin-bottom: 0; }
+.m-shell .sc-nav-item a, .m-shell .sc-home-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.m-shell .sc-big-btn { height: 44px; border-radius: 22px; }
