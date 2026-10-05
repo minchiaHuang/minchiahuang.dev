@@ -230,6 +230,11 @@
 .m-shell .m-game:not(.has-dpad) { grid-template-areas: 'screen screen' 'right right'; }
 .m-shell .m-game-screen { grid-area: screen; min-height: 0; background: #000; }
 .m-shell .m-game-screen .dos { height: 100%; }
+/* js-dos 8.5.1 draws its own touch controls (ESC, F, SP, joystick) when it detects a phone; the keys below replace them and
+   they would take touches meant for the game. They are the children of .emulator-mouse-overlay (its buttons are
+   .emulator-button-touch-zone, its joystick a bare div). js-dos has no option to turn them off. Recheck this selector
+   on a js-dos upgrade. */
+.m-shell .m-game-screen .emulator-mouse-overlay > * { display: none; }
 .m-shell .m-vk-left { grid-area: left; display: flex; align-items: center; justify-content: center; padding: 10px 4px 10px 12px; }
 .m-shell .m-vk-right { grid-area: right; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; padding: 10px 12px; }
 .m-shell .m-vk-dpad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); grid-template-areas: '. up .' 'left . right' '. down .'; gap: 2px; }
