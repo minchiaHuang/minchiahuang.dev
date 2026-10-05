@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { prompt, run } from './terminal.ts';
-import { EMAIL, PROJECTS } from './data/profile.ts';
+import { CHIPS, prompt, run } from './terminal.ts';
+import { ABOUT, EMAIL, PROJECTS } from './data/profile.ts';
 
 test('prompt shows the folder', () => {
   assert.equal(prompt('~'), 'tommy@imac ~ %');
@@ -59,4 +59,32 @@ test('resume, contact and clear have effects', () => {
 test('blank input does nothing; unknown commands say so', () => {
   assert.deepEqual(run('   ', '~'), { out: [], cwd: '~' });
   assert.deepEqual(run('sudo rm -rf /', '~').out, ['zsh: command not found: sudo']);
+});
+
+test('the phone chips, in the order the spec lists them', () => {
+  assert.deepEqual(
+    CHIPS.map((c) => c.label),
+    ['help', 'cat about', 'ls', 'cd projects', 'open …', 'resume', 'contact', 'clear'],
+  );
+});
+
+test('every chip that runs works from home and from projects', () => {
+  for (const c of CHIPS.filter((x) => !x.fill)) {
+    for (const cwd of ['~', '~/projects'] as const) {
+      const out = run(c.line, cwd).out.join('\n');
+      assert.doesNotMatch(out, /no such|not found/i, `${c.label} from ${cwd}: ${out}`);
+    }
+  }
+  assert.equal(run('cd ~/projects', '~/projects').cwd, '~/projects');
+});
+
+test('open … only fills the input', () => {
+  const fills = CHIPS.filter((c) => c.fill);
+  assert.deepEqual(fills.map((c) => c.line), ['open ']);
+});
+
+test('cat ~/about works from projects too; cat about still needs home', () => {
+  assert.deepEqual(run('cat ~/about', '~/projects').out, [ABOUT]);
+  assert.deepEqual(run('cat ~/about', '~').out, [ABOUT]);
+  assert.match(run('cat about', '~/projects').out[0], /No such file/);
 });

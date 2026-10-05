@@ -28,6 +28,24 @@ const HELP = [
 
 const HOME_FILES = ['about', 'projects/', 'resume.pdf'];
 
+// The phone Terminal's command buttons (Terminal.tsx, chips). `line` is what a tap runs; it uses ~/ paths so every
+// chip works from either folder. `fill`: only put `line` in the input and bring up the keyboard (open needs a name).
+export interface Chip {
+  label: string;
+  line: string;
+  fill?: boolean;
+}
+export const CHIPS: Chip[] = [
+  { label: 'help', line: 'help' },
+  { label: 'cat about', line: 'cat ~/about' },
+  { label: 'ls', line: 'ls' },
+  { label: 'cd projects', line: 'cd ~/projects' },
+  { label: 'open …', line: 'open ', fill: true },
+  { label: 'resume', line: 'resume' },
+  { label: 'contact', line: 'contact' },
+  { label: 'clear', line: 'clear' },
+];
+
 const findProject = (name: string) => {
   const n = name.toLowerCase().replace(/\/$/, '');
   return PROJECTS.find((p) => p.slug === n || p.name.toLowerCase() === n);
@@ -49,7 +67,7 @@ export function run(line: string, cwd: Cwd): ShellResult {
       return { out: [`cd: no such file or directory: ${arg}`], cwd };
     }
     case 'cat': {
-      if (cwd === '~' && arg === 'about') return { out: [ABOUT], cwd };
+      if ((cwd === '~' && arg === 'about') || arg === '~/about') return { out: [ABOUT], cwd };
       const p = cwd === '~/projects' ? findProject(arg) : undefined;
       if (p) return { out: [p.name, p.meta, p.blurb], cwd };
       return { out: [`cat: ${arg || '(nothing)'}: No such file or directory`], cwd };
